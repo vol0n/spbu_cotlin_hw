@@ -21,7 +21,8 @@ dependencies {
 }
 
 detekt {
-    failFast = true // fail build on any finding
+    failFast = false // fail build on any finding
+    autoCorrect = true
 }
 
 tasks.test {
