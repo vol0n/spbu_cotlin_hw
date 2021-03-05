@@ -3,7 +3,7 @@ package homework1
 fun compareChunk(idx: Int, source: String, substr: String): Boolean {
     var i = idx
     var j = 0
-    while (i < substr.length) {
+    while (j < substr.length) {
         if (source[i] != substr[j]) {
             return false
         } else {
@@ -14,11 +14,11 @@ fun compareChunk(idx: Int, source: String, substr: String): Boolean {
 }
 
 @Suppress("ReturnCount")
-fun countOccurrences(where: String, what: String): Int {
+fun String.countOccurrences(what: String): Int {
     if (what.isEmpty()) return 1
-    if (where.isEmpty()) return 0
-    return where.foldIndexed(0) { idx, count, _ ->
-        count + if (idx < where.length - what.length + 1 && compareChunk(idx, where, what)) 1 else 0
+    if (isEmpty()) return 0
+    return foldIndexed(0) { idx, count, _ ->
+        count + if (idx < length - what.length + 1 && compareChunk(idx, this, what)) 1 else 0
     }
 }
 
@@ -28,5 +28,5 @@ fun main() {
     val str1 = scan.nextLine()
     println("Enter the substring to find: ")
     val str2 = scan.nextLine()
-    println(countOccurrences(str1, str2))
+    println(str1.countOccurrences(str2))
 }
