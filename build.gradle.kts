@@ -15,6 +15,7 @@ repositories {
 }
 
 dependencies {
+    implementation("org.junit.jupiter:junit-jupiter:5.4.2")
     testImplementation(kotlin("test-junit"))
 
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.14.2")
