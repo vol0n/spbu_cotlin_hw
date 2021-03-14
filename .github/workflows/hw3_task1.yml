@@ -9,4 +9,4 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: run
-        run: gradlew.bat
+        run: gradlew build
