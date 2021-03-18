@@ -8,12 +8,26 @@ on:
 
 jobs:
   build:
-    runs-on: [ubuntu-latest, windows-latest]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
 
       - name: Run build
         run: ./gradlew build
+
+      - name: Run tests
+        run: ./gradlew test
+
+      - name: Run detekt
+        run: ./gradlew detekt
+
+  build on windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Run build
+        run: ./gradlew test
 
       - name: Run tests
         run: ./gradlew test
