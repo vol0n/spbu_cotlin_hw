@@ -1,0 +1,10 @@
+package identicalFuncs
+
+import kotlin.Unit
+import org.junit.jupiter.api.Test
+
+public class IdenticalFuncsTest {
+  @Test
+  public fun backwardApply(): Unit {
+  }
+}
