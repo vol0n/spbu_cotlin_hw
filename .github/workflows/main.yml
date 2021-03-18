@@ -21,7 +21,7 @@ jobs:
       - name: Run detekt
         run: ./gradlew detekt
 
-  build on windows:
+  build_on_windows:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
