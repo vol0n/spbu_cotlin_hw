@@ -85,8 +85,8 @@ data class YamlConfig(
  *
  * -------------------------
  */
-fun generateTestFile(configPath: String, locationToSave: String) {
-    val configFile = File(configPath)
+fun generateTestFile(configName: String, locationToSave: String) {
+    val configFile = File("src/main/resources/homework3/yamlConfigs/$configName.yaml")
     if (configFile.exists()) {
         val configString = configFile.readText()
         val config = Yaml.default.decodeFromString(YamlConfig.serializer(), configString)
@@ -100,7 +100,8 @@ fun generateTestFile(configPath: String, locationToSave: String) {
         val file = FileSpec.builder(config.packageName, config.className)
             .addType(type.build()).build()
         File(locationToSave).apply {
-                file.writeTo(this)
+            println(this)
+            file.writeTo(this)
         }
     } else {
         println("Could not open file: $configFile")
