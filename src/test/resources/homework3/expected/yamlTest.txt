@@ -3,7 +3,7 @@ package yamlTest
 import kotlin.Unit
 import org.junit.jupiter.api.Test
 
-public class YamlTestTest {
+internal class YamlTestTest {
   @Test
   public fun foo(): Unit {
   }

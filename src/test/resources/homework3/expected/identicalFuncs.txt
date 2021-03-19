@@ -3,7 +3,7 @@ package identicalFuncs
 import kotlin.Unit
 import org.junit.jupiter.api.Test
 
-public class IdenticalFuncsTest {
+internal class IdenticalFuncsTest {
   @Test
   public fun backwardApply(): Unit {
   }
