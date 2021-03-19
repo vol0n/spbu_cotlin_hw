@@ -41,5 +41,5 @@ jobs:
         with:
           name: test-report
           path: |
-            build/reports/tests/test/index.html
+            build/reports/tests/**/*
 
