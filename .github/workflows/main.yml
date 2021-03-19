@@ -7,13 +7,27 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
+  build_on_ubuntu:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
 
       - name: Run build
         run: ./gradlew build
+
+      - name: Run tests
+        run: ./gradlew test
+
+      - name: Run detekt
+        run: ./gradlew detekt
+
+  build_on_windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Run build
+        run: ./gradlew test
 
       - name: Run tests
         run: ./gradlew test
