@@ -41,4 +41,5 @@ jobs:
         with:
           name: test-report
           path: |
-            spbu_kotlin_hw/build/reports/tests/**/*
+            build/reports/tests/test/index.html
+
