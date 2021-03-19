@@ -37,6 +37,7 @@ jobs:
 
       - name: Upload Test Report
         uses: actions/upload-artifact@v2
+        if: ${{ always() }}
         with:
           name: test-report
           path: |
