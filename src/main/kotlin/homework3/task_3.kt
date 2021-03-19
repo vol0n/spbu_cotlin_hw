@@ -37,24 +37,17 @@ data class YamlConfig(
     @SerialName("functions")
     val functions: MutableList<Function>?
 ) {
+    var setOfFuncs: Set<Function> = emptySet()
+        get() = field
     init {
-        if (removeDoubles(functions)) {
-            println("Warning: yaml config contains identical functions. Only one function is generated.")
+        if (functions != null) {
+            setOfFuncs = functions.toSet()
+            if (setOfFuncs.size != functions.size) {
+                println("Warning: yaml config contains identical functions. Only one function is generated.")
+            }
+            functions.clear()
         }
     }
-}
-
-/**
- * Helper func for removing doubles in List<Function>
- *
- * @return true if doubles were in list, and false otherwise
- */
-fun removeDoubles(ls: MutableList<Function>?): Boolean {
-    if (ls == null) return false
-    val bag = mutableSetOf<Function>()
-    val sz = ls.size
-    ls.removeIf() { x -> if (x !in bag) bag.add(x).let { false } else true }
-    return sz != ls.size
 }
 
 /**
@@ -98,8 +91,8 @@ fun generateTestFile(configPath: String, locationToSave: String) {
         val config = Yaml.default.decodeFromString(YamlConfig.serializer(), configString)
         val name = ClassName(config.packageName, config.className + "Test")
         val type = TypeSpec.classBuilder(name)
-        if (config.functions !== null) {
-            for (f in config.functions) {
+        if (config.functions != null) {
+            for (f in config.setOfFuncs) {
                 type.addFunction(FunSpec.builder(f.name).addAnnotation(Test::class).build())
             }
         }
