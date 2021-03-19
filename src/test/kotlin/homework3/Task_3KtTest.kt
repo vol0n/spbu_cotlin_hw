@@ -26,9 +26,12 @@ class Task_3KtTest {
     @MethodSource("inputData")
     @ParameterizedTest(name = "test {index}: {0}")
     fun generateTestFileTest(testDirName: String) {
-        this.javaClass.getResourceAsStream("/$testDirName/$testDirName.txt")
-        println(tmpDirForGenerated.toString())
-        generateTestFile(testDirName, tmpDirForGenerated.toString())
+
+        generateTestFile(
+            this.javaClass.getResource("$testDirName/$testDirName.yaml").readText(),
+            tmpDirForGenerated.toString()
+        )
+
         assertEquals(
             this.javaClass.getResource("$testDirName/$testDirName.txt").readText(),
             File("${tmpDirForGenerated}/$testDirName/${testDirName.capitalize()}.kt").readText()

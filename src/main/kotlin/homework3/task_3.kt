@@ -85,30 +85,19 @@ data class YamlConfig(
  *
  * -------------------------
  */
-fun generateTestFile(configName: String, locationToSave: String) {
-    val configFile = File("src/main/resources/homework3/yamlConfigs/$configName.yaml")
-    if (configFile.exists()) {
-        val configString = configFile.readText()
-        val config = Yaml.default.decodeFromString(YamlConfig.serializer(), configString)
-        val name = ClassName(config.packageName, config.className + "Test")
-        val type = TypeSpec.classBuilder(name).addModifiers(KModifier.INTERNAL)
-        if (config.functions != null) {
-            for (f in config.setOfFuncs) {
-                type.addFunction(FunSpec.builder(f.name).addAnnotation(Test::class).build())
-            }
+fun generateTestFile(configString: String, locationToSave: String) {
+    val config = Yaml.default.decodeFromString(YamlConfig.serializer(), configString)
+    val name = ClassName(config.packageName, config.className + "Test")
+    val type = TypeSpec.classBuilder(name).addModifiers(KModifier.INTERNAL)
+    if (config.functions != null) {
+        for (f in config.setOfFuncs) {
+            type.addFunction(FunSpec.builder(f.name).addAnnotation(Test::class).build())
         }
-        val file = FileSpec.builder(config.packageName, config.className)
-            .addType(type.build()).build()
-        File(locationToSave).apply {
-            println(this)
-            file.writeTo(this)
-        }
-    } else {
-        println("Could not open file: $configFile")
     }
-}
-
-fun main() {
-    generateTestFile("src/main/resources/homework3/yamlConfigs/exampleConfig.yaml",
-    "src/main/resources/homework3/GeneratedTests")
+    val file = FileSpec.builder(config.packageName, config.className)
+        .addType(type.build()).build()
+    File(locationToSave).apply {
+        println(this)
+        file.writeTo(this)
+    }
 }
