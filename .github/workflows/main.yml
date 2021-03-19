@@ -34,3 +34,10 @@ jobs:
 
       - name: Run detekt
         run: ./gradlew detekt
+
+      - name: Upload Test Report
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-report
+          path: |
+            spbu_kotlin_hw/build/reports/tests/**/*
