@@ -38,7 +38,7 @@ class Task_3KtTest {
         println("Test: $testDirName")
         println("actual len: ${actual.length}, expected len: ${expected.length}")
         println(actual == expected)
-        for (i in 0..min(actual.length, expected.length))
+        for (i in 0..min(actual.lastIndex, expected.lastIndex))
             if (actual[i] != expected[i])
                 println("Chars are not equal: expected: ${expected[i]}, actual: ${actual[i]}")
 
