@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.gradle.api.tasks.testing.logging.*
 
 plugins {
     kotlin("jvm") version "1.4.30"
@@ -35,6 +36,11 @@ detekt {
 
 tasks.test {
     useJUnitPlatform()
+
+    testLogging {
+        events(TestLogEvent.STANDARD_ERROR, TestLogEvent.STARTED, TestLogEvent.PASSED,
+        TestLogEvent.FAILED, TestLogEvent.SKIPPED)
+    }
 }
 
 tasks.withType<KotlinCompile>() {

@@ -26,15 +26,23 @@ class Task_3KtTest {
     @MethodSource("inputData")
     @ParameterizedTest(name = "test {index}: {0}")
     fun generateTestFileTest(testDirName: String) {
-
         generateTestFile(
             this.javaClass.getResource("$testDirName/$testDirName.yaml").readText(),
             tmpDirForGenerated.toString()
         )
 
+        val actual = File("${tmpDirForGenerated}/$testDirName/${testDirName.capitalize()}.kt").readText()
+        val expected = this.javaClass.getResource("$testDirName/$testDirName.txt").readText()
+
+        println("Test: $testDirName")
+        println("actual len: ${actual.length}, expected len: ${expected.length}")
+        println(actual == expected)
+        for (i in 0..actual.lastIndex)
+            if (actual[i] != expected[i])
+                println("Chars are not equal: expected: ${expected[i]}, actual: ${actual[i]}")
+
         assertEquals(
-            this.javaClass.getResource("$testDirName/$testDirName.txt").readText(),
-            File("${tmpDirForGenerated}/$testDirName/${testDirName.capitalize()}.kt").readText()
+            expected, actual
         )
     }
 }
