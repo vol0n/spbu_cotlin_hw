@@ -7,6 +7,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import java.io.File
+import java.lang.StrictMath.min
 import java.nio.file.Path
 
 
@@ -32,14 +33,20 @@ class Task_3KtTest {
         )
 
         val actual = File("${tmpDirForGenerated}/$testDirName/${testDirName.capitalize()}.kt").readText()
-        val expected = this.javaClass.getResource("$testDirName/$testDirName.kt").readText()
+        val expected = this.javaClass.getResource("$testDirName/$testDirName.txt").readText()
 
         println("Test: $testDirName")
         println("actual len: ${actual.length}, expected len: ${expected.length}")
         println(actual == expected)
-        for (i in 0..expected.lastIndex)
+        for (i in 0..min(actual.length, expected.length))
             if (actual[i] != expected[i])
                 println("Chars are not equal: expected: ${expected[i]}, actual: ${actual[i]}")
+
+        println("Actual:")
+        println(actual)
+
+        println("Expected:")
+        println(expected)
 
         assertEquals(
             expected, actual
