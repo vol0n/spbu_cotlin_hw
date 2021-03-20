@@ -32,12 +32,12 @@ class Task_3KtTest {
         )
 
         val actual = File("${tmpDirForGenerated}/$testDirName/${testDirName.capitalize()}.kt").readText()
-        val expected = this.javaClass.getResource("$testDirName/$testDirName.txt").readText()
+        val expected = this.javaClass.getResource("$testDirName/$testDirName.kt").readText()
 
         println("Test: $testDirName")
         println("actual len: ${actual.length}, expected len: ${expected.length}")
         println(actual == expected)
-        for (i in 0..actual.lastIndex)
+        for (i in 0..expected.lastIndex)
             if (actual[i] != expected[i])
                 println("Chars are not equal: expected: ${expected[i]}, actual: ${actual[i]}")
 
