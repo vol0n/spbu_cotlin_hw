@@ -16,16 +16,16 @@ repositories {
 }
 
 dependencies {
-    implementation("junit:junit:4.12")
+    implementation("org.junit.jupiter:junit-jupiter:5.6.0")
+    testImplementation(platform("org.junit:junit-bom:5.7.1"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.1.0")
-    implementation("org.junit.jupiter:junit-jupiter:5.4.2")
-    testImplementation(kotlin("test-junit"))
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.14.2")
 }
 
 detekt {
-    failFast = false // fail build on any finding
-    autoCorrect = true
+    failFast = true // fail build on any finding
+    autoCorrect = false
 }
 
 tasks.test {
