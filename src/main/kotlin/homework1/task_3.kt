@@ -19,9 +19,9 @@ val module = SerializersModule {
 val format = Json { serializersModule = module }
 
 /**
- *Base class for all Actions
+ * Base class for all Actions.
  *
- *  can be set only if action has not been performed yet
+ * Can be set only if action has not been performed yet
  */
 @Serializable
 @Suppress("UnnecessaryAbstractClass")
@@ -31,7 +31,7 @@ abstract class Action {
 }
 
 /**
- * Action adding Int at specified position in MutableList<T>
+ * Action adding Int at specified position in MutableList<T>.
  *
  * @param elem the Int which is added to ls
  * @param pos the index for insertion
@@ -43,10 +43,10 @@ open class AddAction(private val elem: Int, private val pos: Int) : Action() {
     }
 
     /**
-     * adds [elem] at [pos] in [list] if possible
+     * Adds [elem] at [pos] in [list] if possible.
      *
-     *@return false if [pos] is not a valid index for [list] and no insertion happened.
-     *Returns true if [elem] was added
+     * @return false if [pos] is not a valid index for [list] and no insertion happened.
+     * Returns true if [elem] was added.
      */
     override fun performAction(list: MutableList<Int>): Boolean {
         if (checkParams(list)) {
@@ -58,10 +58,10 @@ open class AddAction(private val elem: Int, private val pos: Int) : Action() {
     }
 
     /**
-     * removes [elem] at [pos] in [list] if possible
+     * Removes [elem] at [pos] in [list] if possible.
      *
-     *@return false if [pos] is not a valid index for [list] and no insertion happened.
-     *Returns true if [elem] was added
+     * @return false if [pos] is not a valid index for [list] and no insertion happened.
+     * Returns true if [elem] was added
      */
     override fun cancelAction(list: MutableList<Int>): Boolean {
         if (checkParams(list)) {
@@ -74,10 +74,10 @@ open class AddAction(private val elem: Int, private val pos: Int) : Action() {
 }
 
 /**
- * Action moving element from pos i in MutableList<T> ls to position j
+ * Action moving element from pos i in MutableList<T> ls to position j.
  *
- * @param i the index of element to move. 0 <= i < ls.length
- * @param j the index where to move. 0 <= j < ls.length
+ * @param i the index of element to move. 0 <= i < ls.length.
+ * @param j the index where to move. 0 <= j < ls.length.
  */
 @Serializable
 class MoveAction(private val i: Int, private val j: Int) : Action() {
@@ -87,9 +87,10 @@ class MoveAction(private val i: Int, private val j: Int) : Action() {
     }
 
     /**
-     * removes element at idx [i] and inserts it at idx [j] if possible
+     * Removes element at idx [i] and inserts it at idx [j] if possible.
+     *
      * @return true if successful, false if i or j are not valid idx and this method
-     * did not change ls
+     * did not change ls.
      */
     override fun performAction(list: MutableList<Int>): Boolean {
         if (checkParams(list)) {
@@ -101,9 +102,10 @@ class MoveAction(private val i: Int, private val j: Int) : Action() {
     }
 
     /**
-     * removes element at idx [j] and inserts it at idx [i] if possible
+     * Removes element at idx [j] and inserts it at idx [i] if possible.
+     *
      * @return true if successful, false if i or j are not valid idx and this method
-     * did not change ls
+     * did not change ls.
      */
     override fun cancelAction(list: MutableList<Int>): Boolean {
         if (checkParams(list)) {
@@ -116,20 +118,21 @@ class MoveAction(private val i: Int, private val j: Int) : Action() {
 }
 
 /**
- * Stores instances of type Action<T>
- * @param ls the list on which to perform and cancel actions
+ * Stores instances of type Action<T>.
+ *
+ * @param ls the list on which to perform and cancel actions.
  */
 class PerformedCommandStorage(private val ls: MutableList<Int>) {
     var data = mutableListOf<Action>()
 
     /**
-     * Puts [act] in storage
+     * Puts [act] in storage.
      */
     fun store(act: Action) = data.add(act)
     fun performStore(act: Action) = data.add(act.apply { this.performAction(ls) })
 
     /**
-     * Cancels the last action on [ls]
+     * Cancels the last action on [ls].
      */
     fun cancelAction() {
         if (data.isEmpty()) println("No actions in the storage, nothing to cancel")
@@ -137,7 +140,7 @@ class PerformedCommandStorage(private val ls: MutableList<Int>) {
     }
 
     /**
-     * Saves json representation of [data] to file specified by [path]
+     * Saves json representation of [data] to file specified by [path].
      */
     fun toJSON(path: String) {
         val file = File(path)
@@ -149,7 +152,7 @@ class PerformedCommandStorage(private val ls: MutableList<Int>) {
     }
 
     /**
-     * Fills [data] with Actions from json file specified by [path]
+     * Fills [data] with Actions from json file specified by [path].
      */
     fun readJSON(path: String) {
         val file = File(path)
