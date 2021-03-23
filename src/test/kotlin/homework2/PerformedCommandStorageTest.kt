@@ -1,9 +1,13 @@
 package homework2
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import java.io.File
+import java.nio.file.Path
 
 internal class PerformedCommandStorageTest{
     companion object{
@@ -25,30 +29,49 @@ internal class PerformedCommandStorageTest{
             Arguments.of("empty", listOf<Action>()),
             Arguments.of("typical", listOf(AddAction(0, 1), MoveAction(1, 0)))
         )
+
     }
 
     @MethodSource("inputDataCancel")
     @ParameterizedTest(name = "test cancel {index}: {0}")
-    fun cancelTest(actions: List<Action>,  ls: MutableList<Int>) {
-        val l = ls.toMutableList()
-        val pcs = PerformedCommandStorage(l)
+    fun cancelTest(actions: List<Action>, expectedList: MutableList<Int>) {
+        val actualList = expectedList.toMutableList()
+        val pcs = PerformedCommandStorage(actualList)
         for (action in actions){
             pcs.performStore(action)
         }
         repeat(actions.size) { pcs.cancelAction() }
-        assertEquals(ls, l)
+        assertEquals(expectedList, actualList)
     }
 
     @MethodSource("inputDataRead")
     @ParameterizedTest(name = "test read {index}: {0}")
     fun readJSONTest(testName: String, expected: List<Action>){
-        val l = mutableListOf<Int>(1, 2, 3, 4, 5)
-        val l1 = l.toMutableList()
-        val pcs = PerformedCommandStorage(l)
+        val actualList = mutableListOf<Int>(1, 2, 3, 4, 5)
+        val expectedList = actualList.toMutableList()
+        val pcs = PerformedCommandStorage(actualList)
         pcs.readJSON(this.javaClass.getResource("$testName/$testName.json").path)
         pcs.performAll()
-        expected.forEach(){ a -> a.performAction(l1) }
-        assertEquals(l1, l)
+        expected.forEach { a -> a.performAction(expectedList) }
+        assertEquals(expectedList, actualList)
+    }
+
+    @TempDir
+    lateinit var tempDirForGenerated: Path
+
+    @MethodSource("inputDataRead")
+    @ParameterizedTest(name = "test read {index}: {0}")
+    fun toJSONTest(testName: String, actions: List<Action>){
+        val mapper = ObjectMapper()
+        val pcs = PerformedCommandStorage(mutableListOf())
+        actions.forEach { x -> pcs.store(x) }
+
+        pcs.toJSON(tempDirForGenerated.toString()+"/$testName.json")
+
+        assertEquals(
+            mapper.readTree(this.javaClass.getResource("$testName/$testName.json")),
+            mapper.readTree(File(tempDirForGenerated.toString()+"/$testName.json"))
+        )
     }
 
 
