@@ -4,6 +4,7 @@ plugins {
     kotlin("jvm") version "1.4.30"
     kotlin("plugin.serialization") version "1.4.30"
     id("io.gitlab.arturbosch.detekt") version "1.15.0"
+    id("org.jetbrains.dokka") version "1.4.20"
     application
 }
 
@@ -16,7 +17,6 @@ repositories {
 }
 
 dependencies {
-    implementation("org.junit.jupiter:junit-jupiter:5.6.0")
     testImplementation(platform("org.junit:junit-bom:5.7.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.1.0")
@@ -26,11 +26,15 @@ dependencies {
 
 detekt {
     failFast = true // fail build on any finding
-    autoCorrect = false
+    autoCorrect = true
 }
 
 tasks.test {
     useJUnitPlatform()
+}
+
+tasks.dokkaHtml.configure {
+    outputDirectory.set(buildDir.resolve("dokka"))
 }
 
 tasks.withType<KotlinCompile>() {
