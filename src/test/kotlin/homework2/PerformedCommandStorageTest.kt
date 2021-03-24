@@ -57,7 +57,7 @@ internal class PerformedCommandStorageTest{
     }
 
     @TempDir
-    lateinit var tempDirForGenerated: Path
+    lateinit var tempDirForGeneratedJson: Path
 
     @MethodSource("inputDataRead")
     @ParameterizedTest(name = "test read {index}: {0}")
@@ -66,11 +66,11 @@ internal class PerformedCommandStorageTest{
         val pcs = PerformedCommandStorage(mutableListOf())
         actions.forEach { x -> pcs.store(x) }
 
-        pcs.toJSON(tempDirForGenerated.toString()+"/$testName.json")
+        pcs.toJSON("$tempDirForGeneratedJson/$testName.json")
 
         assertEquals(
             mapper.readTree(this.javaClass.getResource("$testName/$testName.json")),
-            mapper.readTree(File(tempDirForGenerated.toString()+"/$testName.json"))
+            mapper.readTree(File("$tempDirForGeneratedJson/$testName.json"))
         )
     }
 
