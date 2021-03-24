@@ -17,8 +17,9 @@ repositories {
 }
 
 dependencies {
-    implementation("junit:junit:4.12")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.1.0")
+    testImplementation(platform("org.junit:junit-bom:5.7.1"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
     implementation("org.junit.jupiter:junit-jupiter:5.4.2")
     testImplementation(kotlin("test-junit"))
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.14.2")
@@ -30,7 +31,7 @@ detekt {
 }
 
 tasks.test {
-    useJUnit()
+    useJUnitPlatform()
 }
 
 tasks.dokkaHtml.configure {
