@@ -1,5 +1,14 @@
 package homework1
 
+/**
+ * Compare part of [source] starting from [idx] with [substr].
+ *
+ * @param idx the index of [source] from which the comparison starts.
+ * It is assumed that: 0 <= [idx] < [source].length - [substr].length + 1.
+ * @param source the [String] for which [idx] is supported.
+ * @param substr the [String] which is to be compared with part of [source].
+ * @return true if [source].substring([idx], [idx]+[substr].length) == [substr] false otherwise.
+ */
 fun compareChunk(idx: Int, source: String, substr: String): Boolean {
     var i = idx
     var j = 0
@@ -13,6 +22,12 @@ fun compareChunk(idx: Int, source: String, substr: String): Boolean {
     return true
 }
 
+/**
+ * Extension function counting occurrences of [what].
+ *
+ * @param what the String which to search in this [String] instance.
+ * @return the number of times [what] is included in this [String] instance.
+ */
 @Suppress("ReturnCount")
 fun String.countOccurrences(what: String): Int {
     if (what.isEmpty()) return 1
