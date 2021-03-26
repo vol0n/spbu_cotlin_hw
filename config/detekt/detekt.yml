@@ -252,7 +252,7 @@ formatting:
     active: false
     autoCorrect: true
   Filename:
-    active: true
+    active: false
   FinalNewline:
     active: true
     autoCorrect: true
@@ -400,7 +400,7 @@ naming:
     active: false
     rootPackage: ''
   MatchingDeclarationName:
-    active: true
+    active: false
     mustBeFirst: true
   MemberNameEqualsClassName:
     active: true
