@@ -1,18 +1,20 @@
 package homework4.task2
 
-import java.lang.Math.max
-
 class AVLTree<K : Comparable<K>, V> : Map<K, V> {
-    private var root: TreeNode<K, V>? = null
+    internal var root: TreeNode<K, V>? = null
 
-    private fun height(x: TreeNode<K, V>?) = x?.height ?: 0
-    private fun bFactor(x: TreeNode<K, V>) = height(x.left) - height(x.right)
-    private fun fixHeight(x: TreeNode<K, V>) {
-        x.height = max(height(x.right), height(x.left)) + 1
+    companion object {
+        private const val LEFTHEAVY = 2
+        private const val RIGHTHEAVY = -2
     }
 
     internal fun rotateLeft(a: TreeNode<K, V>): TreeNode<K, V> {
-        val b = a.right!!
+        val secondNode = a.right
+        if (secondNode == null) {
+            println("rotateLeft failed: right child is null!")
+            return a
+        }
+        val b: TreeNode<K, V> = secondNode
 
         a.right = b.left
         b.left?.p = a
@@ -30,43 +32,32 @@ class AVLTree<K : Comparable<K>, V> : Map<K, V> {
         b.p = a.p
         a.p = b
 
-        fixHeight(a)
-        fixHeight(b)
+        a.fixHeight()
+        b.fixHeight()
         return b
     }
 
-    internal fun rotateRight(a: TreeNode<K, V>): TreeNode<K, V> {
-        val b = a.left as TreeNode
+    internal fun rotateRight(rotatingNode: TreeNode<K, V>): TreeNode<K, V> {
+        val n = rotatingNode.left ?: error("rotateRight failed: right child is null!")
+        val secondNode: TreeNode<K, V> = n
 
-        a.left = b.right
-        b.right?.p = a
+        rotatingNode.left = secondNode.right
+        secondNode.right?.p = rotatingNode
 
-        b.right = a
+        secondNode.right = rotatingNode
 
-        if (a.p == null) {
-            root = b
-        } else if (a.p?.right == a) {
-            a.p?.right = b
-        } else {
-            a.p?.left = b
+        when {
+            rotatingNode.p == null -> root = secondNode
+            rotatingNode.p?.right == rotatingNode -> rotatingNode.p?.right = secondNode
+            else -> rotatingNode.p?.left = secondNode
         }
 
-        b.p = a.p
-        a.p = b
+        secondNode.p = rotatingNode.p
+        rotatingNode.p = secondNode
 
-        fixHeight(a)
-        fixHeight(b)
-        return b
-    }
-
-    private fun bigRotateRight(x: TreeNode<K, V>): TreeNode<K, V> {
-        rotateLeft(x.left!!)
-        return rotateRight(x)
-    }
-
-    private fun bigRotateLeft(x: TreeNode<K, V>): TreeNode<K, V> {
-        rotateRight(x.right!!)
-        return rotateLeft(x)
+        rotatingNode.fixHeight()
+        secondNode.fixHeight()
+        return secondNode
     }
 
     fun put(key: K, value: V): V? {
@@ -75,27 +66,24 @@ class AVLTree<K : Comparable<K>, V> : Map<K, V> {
         var res: V? = null
         while (curNode != null) {
             parentNode = curNode
-            if (curNode.key == key) {
-                res = curNode.value
-                curNode.value = value
-                return res
-            } else if (curNode.key < key) {
-                curNode = curNode.right
-            } else {
-                curNode = curNode.left
+            when {
+                curNode.key == key -> {
+                    res = curNode.value
+                    curNode.value = value
+                    return res
+                }
+                curNode.key < key -> curNode = curNode.right
+                else -> curNode = curNode.left
             }
         }
 
         val newNode = TreeNode(key, value)
-        if (parentNode == null) {
-            root = newNode
-        } else if (parentNode.key > key) {
-            parentNode.left = newNode
-            newNode.p = parentNode
-        } else {
-            parentNode.right = newNode
-            newNode.p = parentNode
+        when {
+            parentNode == null -> root = newNode
+            parentNode.key > key -> parentNode.left = newNode
+            else -> parentNode.right = newNode
         }
+        newNode.p = parentNode
 
         balance(parentNode)
         size++
@@ -103,16 +91,16 @@ class AVLTree<K : Comparable<K>, V> : Map<K, V> {
     }
 
     private fun transplant(u: TreeNode<K, V>, v: TreeNode<K, V>?) {
-        if (u.p == null) {
-            root = v
-        } else if (u == u.p?.left) {
-            u.p?.left = v
-        } else { u.p?.right = v }
+        when {
+            u.p == null -> root = v
+            u == u.p?.left -> u.p?.left = v
+            else -> u.p?.right = v
+        }
         if (v != null) { v.p = u.p }
     }
 
     fun remove(key: K): V? {
-        val z = find(key)
+        val z = root?.find(key)
         if (z != null) size--
         else return null
 
@@ -123,7 +111,8 @@ class AVLTree<K : Comparable<K>, V> : Map<K, V> {
             transplant(z, z.left)
             balance(z.p)
         } else {
-            val y = treeMin(z.right as TreeNode<K, V>)
+            val y = z.right?.treeMin()
+            y ?: error("y was probably accessed in another thread!")
             if (y.p != z) {
                 val tmp = y.right
                 transplant(y, y.right)
@@ -143,29 +132,27 @@ class AVLTree<K : Comparable<K>, V> : Map<K, V> {
         return z.value
     }
 
-    private fun treeMin(start: TreeNode<K, V>): TreeNode<K, V> {
-        var curNode = start
-        while (curNode.left != null)
-            curNode = curNode.left as TreeNode
-        return curNode
-    }
-
-    @Suppress("MagicNumber")
     private fun balance(x: TreeNode<K, V>?) {
         if (x == null) { return }
 
-        fixHeight(x)
+        x.fixHeight()
 
         var pn = x
-        if (bFactor(pn) == -2) {
-            if (pn.right != null && bFactor(pn.right!!) == 1) {
-                pn = bigRotateLeft(pn)
-            } else { pn = rotateLeft(pn) }
-        } else if (bFactor(pn) == 2) {
-            if (pn.left != null && bFactor(pn.left!!) == -1) {
-                pn = bigRotateRight(pn)
+        if (pn.balanceFactor() == RIGHTHEAVY) {
+            val right = pn.right
+            pn = if (right != null && right.balanceFactor() == 1) {
+                rotateRight(right)
+                rotateLeft(pn)
             } else {
-                pn = rotateRight(pn)
+                rotateLeft(pn)
+            }
+        } else if (pn.balanceFactor() == LEFTHEAVY) {
+            val left = pn.left
+            pn = if (left != null && left.balanceFactor() == -1) {
+                rotateLeft(left)
+                rotateRight(pn)
+            } else {
+                rotateRight(pn)
             }
         }
 
@@ -174,17 +161,17 @@ class AVLTree<K : Comparable<K>, V> : Map<K, V> {
 
     override val entries: Set<Map.Entry<K, V>>
         get() = mutableSetOf<Map.Entry<K, V>>().apply {
-            inOrderTreeWalk { x -> this.add(x) }
+            root?.inOrderTreeWalk { x -> this.add(x) }
         }
 
     override val keys: Set<K>
         get() = mutableSetOf<K>().apply {
-            inOrderTreeWalk { x -> this.add(x.key) }
+            root?.inOrderTreeWalk { x -> this.add(x.key) }
         }
 
     override val values: Collection<V>
         get() = mutableListOf<V>().apply {
-            inOrderTreeWalk { x -> this.add(x.value) }
+            root?.inOrderTreeWalk { x -> this.add(x.value) }
         }
 
     override fun containsKey(key: K): Boolean {
@@ -195,35 +182,7 @@ class AVLTree<K : Comparable<K>, V> : Map<K, V> {
         return root?.containsValue(value) == true
     }
 
-    private fun inOrderTreeWalk(f: (x: TreeNode<K, V>) -> Unit) {
-        fun walk(t: TreeNode<K, V>?) {
-            if (t != null) {
-                walk(t.right)
-                f(t)
-                walk(t.left)
-            }
-        }
-
-        walk(root)
-    }
-
-    internal fun find(key: K): TreeNode<K, V>? {
-        var e: TreeNode<K, V>? = root
-        var res: TreeNode<K, V>? = null
-        while (e != null) {
-            if (e.key == key) {
-                res = e
-                break
-            } else if (e.key < key) {
-                e = e.right
-            } else { e = e.left }
-        }
-        return res
-    }
-
-    override fun get(key: K): V? {
-        return find(key)?.value
-    }
+    override fun get(key: K): V? = root?.find(key)?.value
 
     override fun isEmpty() = root == null
 
@@ -233,24 +192,9 @@ class AVLTree<K : Comparable<K>, V> : Map<K, V> {
         root = null
     }
 
-    internal fun printDebug() {
-        fun temp(x: TreeNode<K, V>?) {
-            val v = x
-            if (v != null) {
-                println(
-                    "${x.key} (${x.height}): ${x.left?.key} (${x.left?.height})," +
-                            "${x.right?.key} (${x.right?.height})"
-                )
-                temp(x.left)
-                temp(x.right)
-            }
-        }
-        temp(root)
-    }
-
     internal fun getStructure(): Set<TestNode<K>> {
         return mutableSetOf<TestNode<K>>().apply {
-            inOrderTreeWalk { x -> this.add(TestNode(x.key, x.left?.key, x.right?.key)) }
+            root?.inOrderTreeWalk { x -> this.add(TestNode(x.key, x.left?.key, x.right?.key)) }
         }
     }
 }

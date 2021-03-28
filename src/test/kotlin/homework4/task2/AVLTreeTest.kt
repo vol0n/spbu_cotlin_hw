@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import java.lang.IllegalStateException
 
 internal typealias N = TestNode<Int>
 internal class AVLTreeTest{
@@ -88,9 +89,9 @@ internal class AVLTreeTest{
         val t = AVLTree<Int, String>()
         elems.forEach { x -> t.put(x, "") }
         try {
-            t.rotateLeft(t.find(key)!!)
+            t.rotateLeft(t.root?.find(key)!!)
         }
-        catch (e: NullPointerException){}
+        catch (e: IllegalStateException){}
         assertEquals(expected, t.getStructure())
     }
 
@@ -100,9 +101,9 @@ internal class AVLTreeTest{
         val t = AVLTree<Int, String>()
         elems.forEach { x -> t.put(x, "") }
         try {
-            t.rotateRight(t.find(key)!!)
+            t.rotateRight(t.root?.find(key)!!)
         }
-        catch (e: NullPointerException){}
+        catch (e: IllegalStateException){}
         assertEquals(expected, t.getStructure())
     }
 
