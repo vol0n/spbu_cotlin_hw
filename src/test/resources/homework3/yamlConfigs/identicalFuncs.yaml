@@ -1,5 +1,0 @@
-package name: identicalFuncs
-class name: IdenticalFuncs
-functions:
-  - name: "backwardApply"
-  - name: "backwardApply"

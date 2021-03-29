@@ -38,16 +38,12 @@ data class YamlConfig(
     @SerialName("functions")
     val functions: MutableList<Function>?
 ) {
-    var setOfFuncs: Set<Function> = emptySet()
-        get() = field
+    val setOfFuncs = functions?.toSet() ?: emptySet()
     init {
-        if (functions != null) {
-            setOfFuncs = functions.toSet()
-            if (setOfFuncs.size != functions.size) {
-                println("Warning: yaml config contains identical functions. Only one function is generated.")
-            }
-            functions.clear()
+        if (setOfFuncs.size != functions?.size) {
+            println("Warning: yaml config contains identical functions. Only one function is generated.")
         }
+        functions?.clear()
     }
 }
 

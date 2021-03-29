@@ -1,5 +1,0 @@
-package name: yamlTest
-class name: YamlTest
-functions:
-  - name: "foo"
-  - name: "foobar"
