@@ -1,0 +1,3 @@
+# Denote .txt files as binary that should not be modified by git, so
+# the tests on windows would pass.
+*.txt binary
