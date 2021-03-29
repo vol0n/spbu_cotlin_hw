@@ -5,6 +5,7 @@ plugins {
     kotlin("jvm") version "1.4.30"
     kotlin("plugin.serialization") version "1.4.30"
     id("io.gitlab.arturbosch.detekt") version "1.15.0"
+    id("org.jetbrains.dokka") version "1.4.20"
     application
 }
 
@@ -22,6 +23,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.1.0")
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.4.30")
     implementation("com.squareup:kotlinpoet:1.7.2")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.12.2")
 
     testImplementation(platform("org.junit:junit-bom:5.7.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
@@ -43,6 +45,10 @@ tasks.test {
     }
 }
 
+tasks.dokkaHtml.configure {
+    outputDirectory.set(buildDir.resolve("dokka"))
+}
+
 tasks.withType<KotlinCompile>() {
     kotlinOptions {
         jvmTarget = "1.8"
@@ -51,5 +57,10 @@ tasks.withType<KotlinCompile>() {
 }
 
 application {
-    mainClass.set("MainKt")
+    mainClass.set("homework1.Task_3Kt")
+}
+
+val compileKotlin: KotlinCompile by tasks
+compileKotlin.kotlinOptions {
+    jvmTarget = "1.8"
 }
