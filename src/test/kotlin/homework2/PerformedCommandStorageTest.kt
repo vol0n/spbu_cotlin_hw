@@ -29,7 +29,6 @@ internal class PerformedCommandStorageTest{
             Arguments.of("empty", listOf<Action>()),
             Arguments.of("typical", listOf(AddAction(0, 1), MoveAction(1, 0)))
         )
-
     }
 
     @MethodSource("inputDataCancel")

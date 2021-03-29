@@ -16,7 +16,9 @@ class PerformedCommandStorage(private val ls: MutableList<Int>) {
      * Puts [act] in storage.
      */
     fun store(act: Action) = data.add(act)
+
     fun performStore(act: Action) = data.add(act.apply { this.performAction(ls) })
+
     fun performAll() = data.forEach() { x -> x.performAction(ls) }
 
     /**
