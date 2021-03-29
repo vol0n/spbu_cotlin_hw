@@ -6,7 +6,7 @@ internal class TreeNode<K : Comparable<K>, V> (override val key: K, override var
     var left: TreeNode<K, V>? = null
     var p: TreeNode<K, V>? = null
 
-    private fun height() = this.height
+    internal fun height() = this.height
     internal fun balanceFactor() = (this.left?.height() ?: 0) - (this.right?.height() ?: 0)
     internal fun fixHeight() {
         this.height = Math.max(this.left?.height() ?: 0, this.right?.height() ?: 0) + 1

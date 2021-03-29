@@ -8,37 +8,31 @@ class AVLTree<K : Comparable<K>, V> : Map<K, V> {
         private const val RIGHTHEAVY = -2
     }
 
-    internal fun rotateLeft(a: TreeNode<K, V>): TreeNode<K, V> {
-        val secondNode = a.right
-        if (secondNode == null) {
-            println("rotateLeft failed: right child is null!")
-            return a
-        }
-        val b: TreeNode<K, V> = secondNode
+    internal fun rotateLeft(rotatingNode: TreeNode<K, V>): TreeNode<K, V> {
+        val n = rotatingNode.right ?: error("rotateLeft failed: right child is null!")
+        val secondNode: TreeNode<K, V> = n
 
-        a.right = b.left
-        b.left?.p = a
+        rotatingNode.right = secondNode.left
+        secondNode.left?.p = rotatingNode
 
-        b.left = a
+        secondNode.left = rotatingNode
 
-        if (a.p == null) {
-            root = b
-        } else if (a.p?.right == a) {
-            a.p?.right = b
-        } else {
-            a.p?.left = b
+        when {
+            rotatingNode.p == null -> root = secondNode
+            rotatingNode.p?.right == rotatingNode -> rotatingNode.p?.right = secondNode
+            else -> rotatingNode.p?.left = secondNode
         }
 
-        b.p = a.p
-        a.p = b
+        secondNode.p = rotatingNode.p
+        rotatingNode.p = secondNode
 
-        a.fixHeight()
-        b.fixHeight()
-        return b
+        rotatingNode.fixHeight()
+        secondNode.fixHeight()
+        return secondNode
     }
 
     internal fun rotateRight(rotatingNode: TreeNode<K, V>): TreeNode<K, V> {
-        val n = rotatingNode.left ?: error("rotateRight failed: right child is null!")
+        val n = rotatingNode.left ?: error("rotateRight failed: left child is null!")
         val secondNode: TreeNode<K, V> = n
 
         rotatingNode.left = secondNode.right
