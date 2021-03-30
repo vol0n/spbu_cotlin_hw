@@ -252,7 +252,7 @@ formatting:
     active: false
     autoCorrect: true
   Filename:
-    active: false
+    active: true
   FinalNewline:
     active: true
     autoCorrect: true
