@@ -25,10 +25,27 @@ internal class PerformedCommandStorageTest{
         )
 
         @JvmStatic
-        fun inputDataRead(): List<Arguments> = listOf(
+        fun inputDataTo(): List<Arguments> = listOf(
             Arguments.of("empty", listOf<Action>()),
             Arguments.of("typical", listOf(AddAction(0, 1), MoveAction(1, 0)))
         )
+
+        @JvmStatic
+        fun inputDataRead(): List<Arguments> = listOf(
+            Arguments.of(buildArgsForRead("empty", mutableListOf<Int>()), listOf<Int>()),
+            Arguments.of(buildArgsForRead("typical", (0..5).toMutableList()),  listOf(0, 0, 1, 2, 3, 4, 5))
+        )
+
+        @JvmStatic
+        fun buildArgsForRead(pathToJson: String, sourceList: MutableList<Int>): List<Int> {
+            val pcs = PerformedCommandStorage(sourceList)
+            pcs.readJSON(
+                PerformedCommandStorageTest::class.java.getResource("$pathToJson/$pathToJson.json").path
+            )
+            pcs.performAll()
+            return pcs.list
+        }
+
     }
 
     @MethodSource("inputDataCancel")
@@ -45,20 +62,14 @@ internal class PerformedCommandStorageTest{
 
     @MethodSource("inputDataRead")
     @ParameterizedTest(name = "test read {index}: {0}")
-    fun readJSONTest(testName: String, expected: List<Action>){
-        val actualList = mutableListOf<Int>(1, 2, 3, 4, 5)
-        val expectedList = actualList.toMutableList()
-        val pcs = PerformedCommandStorage(actualList)
-        pcs.readJSON(this.javaClass.getResource("$testName/$testName.json").path)
-        pcs.performAll()
-        expected.forEach { a -> a.performAction(expectedList) }
+    fun readJSONTest(expectedList: List<Int>, actualList: List<Int>){
         assertEquals(expectedList, actualList)
     }
 
     @TempDir
     lateinit var tempDirForGeneratedJson: Path
 
-    @MethodSource("inputDataRead")
+    @MethodSource("inputDataTo")
     @ParameterizedTest(name = "test read {index}: {0}")
     fun toJSONTest(testName: String, actions: List<Action>){
         val mapper = ObjectMapper()
