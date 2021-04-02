@@ -2,6 +2,7 @@ package homework2
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -29,23 +30,6 @@ internal class PerformedCommandStorageTest{
             Arguments.of("empty", listOf<Action>()),
             Arguments.of("typical", listOf(AddAction(0, 1), MoveAction(1, 0)))
         )
-
-        @JvmStatic
-        fun inputDataRead(): List<Arguments> = listOf(
-            Arguments.of(buildArgsForRead("empty", mutableListOf<Int>()), listOf<Int>()),
-            Arguments.of(buildArgsForRead("typical", (0..5).toMutableList()),  listOf(0, 0, 1, 2, 3, 4, 5))
-        )
-
-        @JvmStatic
-        fun buildArgsForRead(pathToJson: String, sourceList: MutableList<Int>): List<Int> {
-            val pcs = PerformedCommandStorage(sourceList)
-            pcs.readJSON(
-                PerformedCommandStorageTest::class.java.getResource("$pathToJson/$pathToJson.json").path
-            )
-            pcs.performAll()
-            return pcs.list
-        }
-
     }
 
     @MethodSource("inputDataCancel")
@@ -60,10 +44,26 @@ internal class PerformedCommandStorageTest{
         assertEquals(expectedList, actualList)
     }
 
-    @MethodSource("inputDataRead")
-    @ParameterizedTest(name = "test read {index}: {0}")
-    fun readJSONTest(expectedList: List<Int>, actualList: List<Int>){
-        assertEquals(expectedList, actualList)
+    @Test
+    fun readEmptyJsonTest() {
+        PerformedCommandStorage(mutableListOf()).apply {
+            readJSON(
+                PerformedCommandStorageTest::class.java.getResource("empty/empty.json").path
+            )
+            performAll()
+            assertEquals(emptyList<Int>(), this.list)
+        }
+    }
+
+    @Test
+    fun readTypicalJsonTest() {
+        PerformedCommandStorage((0..5).toMutableList()).apply {
+            readJSON(
+                PerformedCommandStorageTest::class.java.getResource("typical/typical.json").path
+            )
+            performAll()
+            assertEquals(listOf(0, 0, 1, 2, 3, 4, 5), this.list)
+        }
     }
 
     @TempDir
@@ -83,6 +83,4 @@ internal class PerformedCommandStorageTest{
             mapper.readTree(File("$tempDirForGeneratedJson/$testName.json"))
         )
     }
-
-
 }
