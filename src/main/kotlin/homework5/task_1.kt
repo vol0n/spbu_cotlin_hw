@@ -2,152 +2,108 @@ package homework5
 
 import java.io.File
 
-open class Token(var lexeme: String = "") {
-    open fun print(indentWidth: Int, indentStr: String = ".") {
-        println(indentStr.repeat(indentWidth) + lexeme)
+abstract class Node {
+    var left: Node? = null
+    var right: Node? = null
+    abstract fun compute(): Int
+    abstract fun print(indentWidth: Int, indentStr: String = ".")
+}
+
+class Operator(private val type: Char) : Node() {
+    override fun compute(): Int {
+        val l = left; val r = right
+        if (l == null || r == null) error("Operator Node must have two children!")
+        return when (type) {
+            '+' -> l.compute() + r.compute()
+            '*' -> l.compute() * r.compute()
+            '/' -> l.compute() / r.compute()
+            '-' -> l.compute() - r.compute()
+            else -> error("Unknown operator: $type !")
+        }
     }
+
+    override fun print(indentWidth: Int, indentStr: String) {
+        println(indentStr.repeat(indentWidth) + type)
+        left?.print(indentWidth, indentStr)
+        right?.print(indentWidth, indentStr)
+    }
+}
+
+class Operand(private val value: Int) : Node() {
+    override fun compute() = value
+    override fun print(indentWidth: Int, indentStr: String) {
+        println(indentStr.repeat(indentWidth) + value.toString())
+        left?.print(indentWidth, indentStr)
+        right?.print(indentWidth, indentStr)
+    }
+}
+
+enum class Type {
+    OPERATOR, OPERAND, LEFT, RIGHT
 }
 
 class Tokenizer(path: String) {
     private val sourceStr: String = File(path).readText()
     private var i: Int = -1
-    companion object {
-        const val END = 'e'
-    }
-
-    fun next(): Token {
+    fun next(): Pair<String, Type> {
         while (nextChar() == ' ')
             move()
         val c = nextChar()
-        val token: Token = when {
+        val token: Pair<String, Type> = when {
             c.isDigit() || (c == '-' && nextChar(2).isDigit()) -> {
-                """-?\d+""".toRegex().find(sourceStr, i + 1)?.value?.toInt()?.let { Operand(it) } as Token
+                """-?\d+""".toRegex().find(sourceStr, i + 1)?.value?.run {
+                    this to Type.OPERAND
+                } as Pair<String, Type>
             }
-            c in "+-*/" -> {
-                Operator(c)
-            }
-            c in "()" -> {
-                Token(c.toString())
-            }
-            else -> {
-                error("Unknown symbol in source string: ${sourceStr[i]}")
-            }
+            c in "+-*/" -> c.toString() to Type.OPERATOR
+            c == '(' -> c.toString() to Type.LEFT
+            c == ')' -> c.toString() to Type.RIGHT
+            else -> error("Unknown symbol in source string: ${sourceStr[i]}")
         }
-
-        move(token.lexeme.length)
+        move(token.first.length)
         return token
     }
 
     private fun move(shift: Int = 1) {
         if (i + shift < sourceStr.length) {
             i += shift
-        } else {
-            println("Shift was not performed. i = $i, data[i] = ${sourceStr[i]}, shift = $shift")
-        }
+        } else { throw IndexOutOfBoundsException(i + shift) }
     }
 
     private fun nextChar(shift: Int = 1): Char {
         if (i + shift < sourceStr.length) {
             return sourceStr[i + shift]
         }
-        return END
-    }
-}
-
-class Node(private val data: Token) {
-    var p: Node? = null
-    var right: Node? = null
-    var left: Node? = null
-
-    fun compute(): Int? {
-        return when (data) {
-            is Operand -> data.compute()
-            is Operator -> data.compute(left?.compute(), right?.compute())
-            else -> null
-        }
-    }
-
-    fun print(indentWidth: Int, indentStr: String = ".", increment: Int = 4) {
-        data.print(indentWidth)
-        left?.print(indentWidth + increment, indentStr)
-        right?.print(indentWidth + increment, indentStr)
+        throw IndexOutOfBoundsException(i + shift)
     }
 }
 
 class ParseTree(path: String) {
-    private var root: Node? = null
     private val tokenizer = Tokenizer(path)
+    private var root: Node = parseExpr()
 
-    init {
-        parseExpr(root)
-    }
-
-    private fun parseExpr(v: Node?): Node {
+    private fun parseExpr(): Node {
         var curToken = tokenizer.next()
-        when {
-            curToken.lexeme == "(" -> {
+        return when (curToken.second) {
+            Type.LEFT -> {
                 curToken = tokenizer.next()
-                if (curToken !is Operator) {
-                    error("Expression parsing failed: expected operator after '(', but got ${curToken.lexeme}")
+                if (curToken.second != Type.OPERATOR) {
+                    error("Expression parsing failed: expected operator after '(', but got ${curToken.first}")
                 }
-                val x = Node(curToken)
-                if (v == null) {
-                    root = x
+                val x = Operator(curToken.first[0])
+                x.left = parseExpr()
+                x.right = parseExpr()
+                if (tokenizer.next().second != Type.RIGHT) {
+                    error("Expression parsing failed: expected ')' after two operands, but got ${curToken.first}")
                 }
-                x.p = v
-                x.left = parseExpr(x)
-                x.right = parseExpr(x)
-                if (tokenizer.next().lexeme != ")") {
-                    error("Expression parsing failed: expected ')' after two operands, but got ${curToken.lexeme}")
-                }
-                return x
+                x
             }
-            curToken is Operand -> {
-                val x = Node(curToken)
-                if (v == null) {
-                    root = x
-                }
-                x.p = v
-                return x
-            }
-            else -> {
-                error("Parsing failed: expected an '(' or an operand, but got ${curToken.lexeme}")
-            }
+            Type.OPERAND -> Operand(curToken.first.toInt())
+            else -> error("Parsing failed: expected an '(' or an operand, but got ${curToken.first}")
         }
     }
 
-    fun compute(): Int? {
-       return root?.compute()
-    }
+    fun compute(): Int = root.compute()
 
-    fun print() {
-        root?.print(0, ".")
-    }
-}
-
-class Operator(type: Char) : Token(type.toString()) {
-    override fun print(indentWidth: Int, indentStr: String) {
-        println(indentStr.repeat(indentWidth) + lexeme)
-    }
-
-    fun compute(op1: Int?, op2: Int?): Int? {
-        if (op1 == null || op2 == null) {
-            return null
-        }
-        return when (lexeme[0]) {
-            '+' -> op1 + op2
-            '-' -> op1 - op2
-            '*' -> op1 * op2
-            '/' -> op1 / op2
-            else -> null
-        }
-    }
-}
-
-class Operand(private val num: Int) : Token(num.toString()) {
-    override fun print(indentWidth: Int, indentStr: String) {
-        println(indentStr.repeat(indentWidth) + lexeme)
-    }
-
-    fun compute() = num
+    fun print() = root.print(0, ".")
 }
