@@ -67,14 +67,14 @@ class Tokenizer(path: String) {
     private fun move(shift: Int = 1) {
         if (i + shift < sourceStr.length) {
             i += shift
-        } else { throw IndexOutOfBoundsException(i + shift) }
+        } else { throw error("Index out of range: ${i + shift}") }
     }
 
     private fun nextChar(shift: Int = 1): Char {
         if (i + shift < sourceStr.length) {
             return sourceStr[i + shift]
         }
-        throw IndexOutOfBoundsException(i + shift)
+        throw error("Index out of range: ${i + shift}")
     }
 }
 
