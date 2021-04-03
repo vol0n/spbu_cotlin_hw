@@ -2,6 +2,7 @@ package homework2
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -25,11 +26,10 @@ internal class PerformedCommandStorageTest{
         )
 
         @JvmStatic
-        fun inputDataRead(): List<Arguments> = listOf(
+        fun inputDataTo(): List<Arguments> = listOf(
             Arguments.of("empty", listOf<Action>()),
             Arguments.of("typical", listOf(AddAction(0, 1), MoveAction(1, 0)))
         )
-
     }
 
     @MethodSource("inputDataCancel")
@@ -44,22 +44,32 @@ internal class PerformedCommandStorageTest{
         assertEquals(expectedList, actualList)
     }
 
-    @MethodSource("inputDataRead")
-    @ParameterizedTest(name = "test read {index}: {0}")
-    fun readJSONTest(testName: String, expected: List<Action>){
-        val actualList = mutableListOf<Int>(1, 2, 3, 4, 5)
-        val expectedList = actualList.toMutableList()
-        val pcs = PerformedCommandStorage(actualList)
-        pcs.readJSON(this.javaClass.getResource("$testName/$testName.json").path)
-        pcs.performAll()
-        expected.forEach { a -> a.performAction(expectedList) }
-        assertEquals(expectedList, actualList)
+    @Test
+    fun readEmptyJsonTest() {
+        PerformedCommandStorage(mutableListOf()).apply {
+            readJSON(
+                PerformedCommandStorageTest::class.java.getResource("empty/empty.json").path
+            )
+            performAll()
+            assertEquals(emptyList<Int>(), this.list)
+        }
+    }
+
+    @Test
+    fun readTypicalJsonTest() {
+        PerformedCommandStorage((0..5).toMutableList()).apply {
+            readJSON(
+                PerformedCommandStorageTest::class.java.getResource("typical/typical.json").path
+            )
+            performAll()
+            assertEquals(listOf(0, 0, 1, 2, 3, 4, 5), this.list)
+        }
     }
 
     @TempDir
     lateinit var tempDirForGeneratedJson: Path
 
-    @MethodSource("inputDataRead")
+    @MethodSource("inputDataTo")
     @ParameterizedTest(name = "test read {index}: {0}")
     fun toJSONTest(testName: String, actions: List<Action>){
         val mapper = ObjectMapper()
@@ -73,6 +83,4 @@ internal class PerformedCommandStorageTest{
             mapper.readTree(File("$tempDirForGeneratedJson/$testName.json"))
         )
     }
-
-
 }

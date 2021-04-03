@@ -10,13 +10,18 @@ import java.io.File
  * @param ls the list on which to perform and cancel actions.
  */
 class PerformedCommandStorage(private val ls: MutableList<Int>) {
+    val list: List<Int>
+        get() = ls
+
     var data = mutableListOf<Action>()
 
     /**
      * Puts [act] in storage.
      */
     fun store(act: Action) = data.add(act)
+
     fun performStore(act: Action) = data.add(act.apply { this.performAction(ls) })
+
     fun performAll() = data.forEach() { x -> x.performAction(ls) }
 
     /**

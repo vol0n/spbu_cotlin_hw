@@ -4,7 +4,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
-import kotlinx.serialization.modules.subclass
 
 val module = SerializersModule {
     polymorphic(Action::class) {
@@ -36,8 +35,8 @@ abstract class Action {
  */
 @Serializable
 open class AddAction(private val elem: Int, private val pos: Int) : Action() {
-    private fun checkParams(list: MutableList<Int>): Boolean {
-        return (pos in 0..list.lastIndex)
+    private fun checkParams(list: MutableList<Int>, min: Int): Boolean {
+        return (pos in 0..list.lastIndex.coerceAtLeast(min))
     }
 
     /**
@@ -47,7 +46,7 @@ open class AddAction(private val elem: Int, private val pos: Int) : Action() {
      * Returns true if [elem] was added.
      */
     override fun performAction(list: MutableList<Int>): Boolean {
-        if (checkParams(list)) {
+        if (checkParams(list, 0)) {
             list.add(pos, elem)
             return true
         }
@@ -62,7 +61,7 @@ open class AddAction(private val elem: Int, private val pos: Int) : Action() {
      * Returns true if [elem] was added
      */
     override fun cancelAction(list: MutableList<Int>): Boolean {
-        if (checkParams(list)) {
+        if (checkParams(list, -1)) {
             list.removeAt(pos)
             return true
         }
