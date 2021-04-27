@@ -1,4 +1,3 @@
-
 package homework6
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
@@ -57,6 +56,7 @@ fun sort(data: IntArray, l: Int, r: Int, numberOfThreads: Int) {
 fun test(testName: String) {
     val testData = Json.decodeFromString<TestData>(object {}.javaClass.getResource(testName).readText())
     val rand = java.util.Random()
+
     val file = File("results.json")
     val tests = mutableListOf<TestPerThread>()
     var startTime: Long
@@ -76,6 +76,8 @@ fun test(testName: String) {
     file.writeText(
         Json { prettyPrint = true }.encodeToString(GlobalTest(testData.threadsNums, tests))
     )
+    buildGraph()
+    file.delete()
 }
 
 fun main() {
