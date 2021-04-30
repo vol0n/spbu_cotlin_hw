@@ -1,22 +1,18 @@
+
 package test2
 
-import io.ktor.client.*
-import io.ktor.client.engine.cio.*
-
-
-import io.ktor.http.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import kotlinx.coroutines.coroutineScope
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.request.request
+import io.ktor.http.HttpMethod
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import java.io.File
 
-val client = HttpClient(CIO)
 fun main() = runBlocking {
+    val client = HttpClient(CIO)
     val apiKey: String = Json.decodeFromString(
         File(object {}.javaClass.getResource("api-key.json").path).readText()
     )
