@@ -21,9 +21,11 @@ dependencies {
     implementation("org.junit.jupiter:junit-jupiter:5.6.0")
     implementation("com.charleskorn.kaml:kaml:0.28.3")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.1.0")
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.4.30")
+    //implementation("org.jetbrains.kotlin:kotlin-reflect:1.4.30")
     implementation("com.squareup:kotlinpoet:1.7.2")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.12.2")
+
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0-RC")
 
     testImplementation(platform("org.junit:junit-bom:5.7.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
