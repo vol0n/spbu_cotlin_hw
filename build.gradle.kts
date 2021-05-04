@@ -28,7 +28,6 @@ dependencies {
     // for plotting with lets-plot
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation( "org.jetbrains.lets-plot:lets-plot-jfx:2.0.1")
-    api( "org.jetbrains.lets-plot:lets-plot-common:2.0.1")
     api( "org.jetbrains.lets-plot:lets-plot-kotlin-api:2.0.1")
     implementation("org.jetbrains.lets-plot:lets-plot-image-export:2.0.1")
 

@@ -39,5 +39,5 @@ fun buildGraph() {
         plotPos += 400
     }
 
-    ggsave(bunch, "Perfomance_graphs.png")
+    ggsave(bunch, "Performance_graphs.png")
 }
