@@ -1,85 +1,110 @@
 package homework6
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import java.io.File
 
-@Serializable
-data class TestPerThread(val arraySize: Int, val timeArray: List<Double>)
-
-@Serializable
-data class GlobalTest(val threadsNums: List<Int>, val tests: List<TestPerThread>)
-
-@Serializable
-data class TestData(val threadsNums: List<Int>, val arraySizes: List<Int>)
-
-// data[l, m], data[m+1, r] are sorted, merge them into sorted data[l, r]
-fun merge(data: IntArray, l: Int, m: Int, r: Int) {
-    val left = IntArray(m - l + 1) { i -> data[i + l] }
-    val right = IntArray(r - m) { i -> data[i + m + 1] }
-    var i = 0
-    var j = 0
-    var k = l
-    while (i < left.size && j < right.size) {
-        if (left[i] < right[j]) {
-            data[k] = left[i++]
-        } else {
-            data[k] = right[j++]
-        }
-        k++
+class ParallelMergeSort(val destinationArray: IntArray, val sourceArray: IntArray, initialNumberOfThreads: Int) {
+    init {
+        sort(SubArray(0, sourceArray.lastIndex), destinationArray, 0, initialNumberOfThreads)
     }
 
-    while (i < left.size)
-        data[k++] = left[i++]
+    private data class SubArray(val left: Int, val right: Int) {
+        val size: Int
+            get() = right - left + 1
+        val middle: Int
+            get() = (right + left) / 2
+    }
 
-    while (j < right.size)
-        data[k++] = right[j++]
-}
+   private fun lowerBound(value: Int, array: IntArray, sa: SubArray): Int {
+        if (sa.left > sa.right) return sa.left
+        var l = sa.left - 1
+        var r = sa.right + 1
+        var mid: Int
+        // array[l] < value <= array[r]
+        while (l + 1 < r) {
+            mid = (l + r) / 2
+            if (array[mid] < value) {
+                l = mid
+            } else {
+                r = mid
+            }
+        }
+        return r
+    }
 
-fun sort(data: IntArray, l: Int, r: Int, numberOfThreads: Int) {
-    if (l < r) {
-        val mid = (l + r) / 2
+   // for detekt to calm down on parameter list
+   private data class ArraysForMerge(val from: IntArray, val to: IntArray)
+
+   // sort sourceArray[l, r] and save into destArray[s, s + r - l]
+   private fun sort(sa: SubArray, destArray: IntArray, s: Int, numberOfThreads: Int = 1) {
+        if (sourceArray.isEmpty()) return
+        if (sa.size == 1) {
+            destArray[s] = sourceArray[sa.left]
+            return
+        }
+        val tempArray = IntArray(sa.size)
+        // number of elements in the right part of subArray sa
+        val n1 = sa.middle - sa.left + 1
         if (numberOfThreads != 1) {
-            val th = Thread { sort(data, l, mid, numberOfThreads / 2) }
+            val th = Thread { sort(SubArray(sa.left, sa.middle), tempArray, 0, numberOfThreads / 2) }
             th.start()
-            sort(data, mid + 1, r, numberOfThreads - numberOfThreads / 2)
+            sort(SubArray(sa.middle + 1, sa.right), tempArray, n1,
+                numberOfThreads - numberOfThreads / 2)
             th.join()
         } else {
-            sort(data, l, mid, 1)
-            sort(data, mid + 1, r, 1)
+            sort(SubArray(sa.left, sa.middle), tempArray, 0)
+            sort(SubArray(sa.middle + 1, sa.right), tempArray, n1)
         }
-        merge(data, l, mid, r)
-    }
-}
 
-fun test(testName: String) {
-    val testData = Json.decodeFromString<TestData>(object {}.javaClass.getResource(testName).readText())
-    val rand = java.util.Random()
+        merge(
+            ArraysForMerge(tempArray, destArray),
+            SubArray(0, n1 - 1),
+            SubArray(n1, sa.size - 1),
+            s,
+            numberOfThreads
+        )
+   }
 
-    val file = File("results.json")
-    val tests = mutableListOf<TestPerThread>()
-    var startTime: Long
-    var stopTime: Long
-    for (arraySize in testData.arraySizes) {
-        val timeArray = mutableListOf<Double>()
-        for (threadNum in testData.threadsNums) {
-            val test = IntArray(arraySize) { _ -> rand.nextInt() }
-            startTime = System.nanoTime()
-            sort(test, 0, test.lastIndex, threadNum)
-            stopTime = System.nanoTime()
-            @Suppress("MagicNumber")
-            timeArray.add((stopTime - startTime).toDouble() / 1e9)
+    // merge two sorted sourceArray[l1, r1] and sourceArray[l2, r2] into destArray[s, s + r1 - l1 + r2 - l2 + 1]
+    private fun merge(
+        arraysForMerge: ArraysForMerge,
+        sa1: SubArray,
+        sa2: SubArray,
+        s: Int,
+        numberOfThreads: Int = 1
+    ) {
+        if (sa1.size < sa2.size) {
+            merge(arraysForMerge, sa2, sa1, s, numberOfThreads)
+            return
         }
-        tests.add(TestPerThread(arraySize, timeArray))
-    }
-    file.writeText(
-        Json { prettyPrint = true }.encodeToString(GlobalTest(testData.threadsNums, tests))
-    )
-    buildGraph()
-    file.delete()
-}
+        if (sa1.size == 0) return
 
-fun main() {
-    test("testingData.json")
+        val mid1 = sa1.middle
+        val mid2 = lowerBound(arraysForMerge.from[mid1], arraysForMerge.from, sa2)
+        val mid3 = s + (mid1 - sa1.left) + mid2 - sa2.left
+        arraysForMerge.to[mid3] = arraysForMerge.from[mid1]
+        if (numberOfThreads > 1) {
+            val th = Thread {
+                merge(arraysForMerge, SubArray(sa1.left, mid1 - 1), SubArray(sa2.left, mid2 - 1), s,
+                    numberOfThreads / 2)
+            }
+            th.start()
+            merge(
+                arraysForMerge,
+                 SubArray(mid1 + 1, sa1.right), SubArray(mid2, sa2.right), mid3 + 1,
+                numberOfThreads - numberOfThreads / 2
+            )
+            th.join()
+        } else {
+            merge(
+                arraysForMerge,
+                SubArray(sa1.left, mid1 - 1),
+                SubArray(sa2.left, mid2 - 1),
+                s
+            )
+            merge(
+                arraysForMerge,
+                SubArray(mid1 + 1, sa1.right),
+                SubArray(mid2, sa2.right),
+                mid3 + 1
+            )
+        }
+    }
 }
