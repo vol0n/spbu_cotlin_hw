@@ -24,6 +24,11 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.4.30")
     implementation("com.squareup:kotlinpoet:1.7.2")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.12.2")
+    implementation("io.ktor:ktor-client-core:1.5.3")
+    implementation("io.ktor:ktor-client-cio:1.5.3")
+
+
+
 
     testImplementation(platform("org.junit:junit-bom:5.7.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
