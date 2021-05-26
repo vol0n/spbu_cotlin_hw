@@ -6,6 +6,7 @@ plugins {
     kotlin("plugin.serialization") version "1.4.30"
     id("io.gitlab.arturbosch.detekt") version "1.15.0"
     id("org.jetbrains.dokka") version "1.4.20"
+    id("org.openjfx.javafxplugin") version "0.0.8"
     application
 }
 
@@ -25,10 +26,19 @@ dependencies {
     implementation("com.squareup:kotlinpoet:1.7.2")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.12.2")
 
+    implementation("no.tornado:tornadofx:1.7.20")
+    implementation("org.openjfx:javafx-base:11.0.2")
+    implementation("org.openjfx:javafx:11.0.2")
+    implementation("org.openjfx:javafx-controls:11.0.2")
+
     testImplementation(platform("org.junit:junit-bom:5.7.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.14.2")
+}
+
+javafx {
+    modules("javafx.controls", "javafx.graphics")
 }
 
 detekt {
@@ -62,5 +72,5 @@ application {
 
 val compileKotlin: KotlinCompile by tasks
 compileKotlin.kotlinOptions {
-    jvmTarget = "1.8"
+    jvmTarget = "11"
 }
