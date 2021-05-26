@@ -2,7 +2,6 @@ package hw8.app
 
 import hw8.views.MenuScreen
 import javafx.stage.Stage
-import hw8.app.Styles
 import tornadofx.App
 import tornadofx.launch
 
