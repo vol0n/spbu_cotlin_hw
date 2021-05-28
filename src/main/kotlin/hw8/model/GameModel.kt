@@ -1,36 +1,49 @@
 package hw8
 
 import hw8.model.Player
+import io.ktor.client.*
 import javafx.beans.property.ReadOnlyStringProperty
 import javafx.beans.property.SimpleStringProperty
 import tornadofx.onChange
 
 data class Turn(val rowPos: Int, val colPos: Int)
 
-object GameModel {
-    const val EMPTY = ""
-    const val boardSize = 3
+enum class Cell(val representation: String) {
+    EMPTY(""),
+    O("O"),
+    X("X")
+}
 
-    private val board: List<MutableList<SimpleStringProperty>> = List(this.boardSize) { rowIndex ->
-        MutableList(this.boardSize) { colIndex ->
-            SimpleStringProperty(Turn(rowIndex, colIndex), "cell", EMPTY).apply {
-                onChange {
-                    checkState()
-                }
-            }
+class GameModel {
+    companion object {
+        const val boardSize = 3
+        const val numOfPlayers = 2
+        val playersLabels = listOf(Cell.X, Cell.O)
+    }
+
+    private val players = mutableListOf<Player>()
+    fun addPlayers(playersToUse: List<Player>) {
+        if (players.isEmpty()) {
+            if (playersToUse.size != numOfPlayers) error("There must be only 2 players for tic-tac-toe!")
+            playersToUse.map { players.add(it) }
         }
     }
 
+    private val board: List<MutableList<Cell>> = List(boardSize) {
+        MutableList(boardSize) { Cell.EMPTY }
+    }
+
     val gameBoard
-        get() = board as List<List<ReadOnlyStringProperty>>
+        get() = board as List<List<Cell>>
+    fun getCell(turn: Turn) = board[turn.rowPos][turn.colPos]
 
-    private val players = mutableListOf<Player>()
-    private var gameStarted = false
-
-    fun addPlayer(player: Player) {
-        if (!gameStarted) {
-            players.add(player)
+    fun getTurn(cell: Cell): Turn {
+        for (i in 0..boardSize) {
+            for (j in 0..boardSize) {
+                if (board[i][j] === cell) return Turn(i, j)
+            }
         }
+        error("No such cell!")
     }
 
     private var turnNumber = 0
@@ -44,39 +57,38 @@ object GameModel {
     var winner: Player? = null
     var winningCombo: Combo? = null
     var onEndGame: (Player?, Combo?) -> Unit = { _, _ -> }
+    var onTurn: (Player, Turn, String) -> Unit = {_, _, _ -> }
 
     private val combos = mutableListOf<Combo>()
     fun getCombos() = combos as List<Combo>
 
     init {
         // horizontal
-        for (i in 0 until this.boardSize) {
+        for (i in 0 until boardSize) {
             combos.add(Combo(
-                List(boardSize) { j -> board[i][j] }
+                List(boardSize) { j -> Turn(i, j) }
             ))
         }
 
         // vertical
-        for (i in 0 until this.boardSize) {
+        for (i in 0 until boardSize) {
             combos.add(Combo(
-                List(boardSize) { j -> board[j][i] }
+                List(boardSize) { j -> Turn(j, i) }
             ))
         }
 
         // diagonals
         combos.add(Combo(
-            List(boardSize) { i -> board[i][i] }
+            List(boardSize) { i -> Turn(i, i) }
         ))
 
         combos.add(Combo(
-            List(boardSize) { i -> board[boardSize - i - 1][i] }
+            List(boardSize) { i -> Turn(boardSize - i - 1, i) }
         ))
     }
 
     fun play() {
         if (!isPlayable) return
-        require(players.isNotEmpty()) { "No players, can't play!" }
-        gameStarted = true
         var currentPlayer = players[currentPlayerIndex]
         while (!currentPlayer.isLongResponse) {
             val turn = currentPlayer.retrieveTurn()
@@ -86,41 +98,21 @@ object GameModel {
         }
     }
 
-    // for complete restart
-    fun clearPlayersAndRestart() {
-        restart()
-        players.clear()
-    }
-
-    // used to play new game with the same players
-    fun restart() {
-        board.map {
-            it.map {
-                it.value = EMPTY
-            }
-        }
-        gameStarted = false
-        winningCombo = null
-        winner = null
-        turnNumber = 0
-        isPlayable = true
-    }
-
-    class Combo(private val cells: List<ReadOnlyStringProperty>) {
+    inner class Combo(private val combo: List<Turn>) {
         fun isComplete(): Boolean {
-            if (cells[0].value == EMPTY) return false
-            return cells.count { it.value == cells[0].value } == cells.size
+            if (getCell(combo[0]) == Cell.EMPTY) return false
+            return combo.count { getCell(it) == getCell(combo[0]) } == combo.size
         }
 
         fun isCompletable(): Boolean {
-            if (cells.count { it.value == EMPTY } != 1) return false
-            val indexOfFullCell = cells.indexOfFirst { it.value != EMPTY }
-            return (cells.count { (it.value == cells[indexOfFullCell].value) } == cells.size - 1)
+            if (combo.count { getCell(it) == Cell.EMPTY } != 1) return false
+            val indexOfFullCell = combo.indexOfFirst { getCell(it) != Cell.EMPTY }
+            return combo.count { getCell(it) == getCell(combo[indexOfFullCell]) } == combo.size - 1
         }
 
         fun getCompletingTurn(): Turn {
             require(isCompletable())
-            return cells.single { it.value == EMPTY }.bean as Turn
+            return combo.single { getCell(it) == Cell.EMPTY }
         }
     }
 
@@ -145,8 +137,10 @@ object GameModel {
     }
 
     private fun makeTurn(turn: Turn) {
-        require(board[turn.rowPos][turn.colPos].value == EMPTY) { "This cell is already used!" }
-        board[turn.rowPos][turn.colPos].value = players[currentPlayerIndex].label
+        require(board[turn.rowPos][turn.colPos] == Cell.EMPTY) { "This cell is already used!" }
+        board[turn.rowPos][turn.colPos] = playersLabels[currentPlayerIndex]
+        onTurn(players[currentPlayerIndex], turn, playersLabels[currentPlayerIndex].representation)
+        checkState()
         turnNumber++
     }
 

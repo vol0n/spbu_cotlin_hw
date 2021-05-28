@@ -21,7 +21,7 @@ class GameView : View() {
             alignment = Pos.CENTER
             spacing = Styles.spacingBetweenBtns.value
             button("Play again").action {
-                    gameController.restart()
+                    gameController.startNewGame()
             }
             button("Go to menu.").action {
                 replaceWith<MenuScreen>(sizeToScene = true, centerOnScreen = true)
@@ -30,10 +30,5 @@ class GameView : View() {
 
             children.filterIsInstance<Button>().addClass(Styles.spacyButton)
         }
-    }
-
-    override fun onDock() {
-        super.onDock()
-        boardScreen.resetTiles()
     }
 }

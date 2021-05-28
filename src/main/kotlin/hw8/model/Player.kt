@@ -1,5 +1,6 @@
 package hw8.model
 
+import hw8.Cell.*
 import hw8.GameModel
 import hw8.Turn
 import kotlin.random.Random
@@ -8,52 +9,51 @@ interface Player {
     fun retrieveTurn(): Turn
     val isLongResponse: Boolean
     val name: String
-    var label: String
+    val label: String
 }
 
-object ComputerRandom : Player {
-    override var label = ""
-    override val isLongResponse = false
-    override fun retrieveTurn(): Turn {
-        val candidates = mutableListOf<Turn>()
-        GameModel.gameBoard.mapIndexed { i, row ->
-            row.mapIndexed { j, cell ->
-                if (cell.value == GameModel.EMPTY) {
-                    candidates.add(Turn(rowPos = i, colPos = j))
+class ComputerRandom(private val game: GameModel, override val label: String) : Player {
+    companion object {
+        fun chooseRandomTurn(game: GameModel): Turn {
+            val candidates = mutableListOf<Turn>()
+            game.gameBoard.mapIndexed { i, row ->
+                row.mapIndexed { j, cell ->
+                    if (cell == EMPTY) {
+                        candidates.add(Turn(rowPos = i, colPos = j))
+                    }
                 }
             }
+            return candidates[Random.nextInt(0, candidates.size)]
         }
-        return candidates[Random.nextInt(0, candidates.size)]
     }
+    override val isLongResponse = false
+    override fun retrieveTurn() = chooseRandomTurn(game)
     override val name = "Computer with random strategy"
 }
 
-object ComputerAI : Player {
-    override var label = ""
+class ComputerAI(private val game: GameModel, override val label: String) : Player {
     override val isLongResponse = false
     override fun retrieveTurn(): Turn {
-        for (combo in GameModel.getCombos()) {
+        for (combo in game.getCombos()) {
             if (combo.isCompletable()) {
                 return combo.getCompletingTurn()
             }
         }
-        return ComputerRandom.retrieveTurn()
+        return ComputerRandom.chooseRandomTurn(game)
     }
     override val name = "Computer with simple AI"
 }
 
-class RealPlayer : Player {
+class RealPlayer(private val game: GameModel, override val label: String) : Player {
     lateinit var turn: Turn
     fun makeTurn(turnFromUI: Turn) {
         turn = turnFromUI
-        GameModel.resumeWhenResponseReady()
+        game.resumeWhenResponseReady()
     }
 
     override fun retrieveTurn(): Turn {
         return turn
     }
-
-    override var label = ""
     override val isLongResponse = true
     override var name = "you"
 }

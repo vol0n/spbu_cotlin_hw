@@ -11,6 +11,7 @@ import javafx.beans.property.SimpleStringProperty
 import javafx.geometry.Pos
 import javafx.scene.control.Button
 import hw8.app.Styles
+import hw8.controllers.GameMode
 import tornadofx.View
 import tornadofx.action
 import tornadofx.addClass
@@ -23,35 +24,20 @@ import tornadofx.togglebutton
 import tornadofx.togglegroup
 import tornadofx.vbox
 
-interface GameMode {
-    fun createPlayer(): Player
-    fun userMenuMessage(): String
-}
-
-object RandomMode : GameMode {
-    override fun createPlayer() = ComputerRandom
-    override fun userMenuMessage() = "Play against computer with random strategy"
-}
-
-object AIMode : GameMode {
-    override fun createPlayer() = ComputerAI
-    override fun userMenuMessage() = "Play against computer with simple AI"
-}
-
-object Single : GameMode {
-    override fun createPlayer() = RealPlayer().apply { name = "player 2" }
-    override fun userMenuMessage() = "Play with yourself"
-}
-
-class MenuScreen : View("Menu") {
+class MenuScreen() : View("Menu") {
     val gameController: GameController by inject()
-    val gameModes = listOf(Single, RandomMode, AIMode)
-    val realPlayerLabel = SimpleStringProperty("X")
+    var gameModes = GameController.gameModes
+
+    private val realPlayerLabel = SimpleStringProperty("X")
+    fun getChosenLabel(): String = realPlayerLabel.value
 
     private var selectedMode: GameMode = gameModes.first()
+    fun getSelectedMode() = selectedMode
+
     override val root = vbox {
         spacing = Styles.spacingBetweenBtns.value
         addClass(Styles.menuScreen)
+
         label("SIDE") {
             addClass(Styles.sideLabel)
         }
@@ -71,32 +57,21 @@ class MenuScreen : View("Menu") {
             addClass(Styles.modeLabel)
         }
 
-            gameModes.forEach {
-                button(it.userMenuMessage()).action {
-                    selectedMode = it
-                    replaceWith<GameView>()
-                }
-            }
-
-            children.filterIsInstance<Button>().addClass(spacyButton)
-            style {
-                alignment = Pos.CENTER
+        gameModes.forEach {
+            button(it.userMenuMessage).action {
+                selectedMode = it
+                replaceWith<GameView>()
             }
         }
 
-    override fun onDock() {
-        super.onDock()
-        GameModel.clearPlayersAndRestart()
-    }
+        children.filterIsInstance<Button>().addClass(spacyButton)
+        style {
+            alignment = Pos.CENTER
+        }
+   }
 
     override fun onUndock() {
         super.onUndock()
-        GameModel.addPlayer(
-            RealPlayer().apply { label = realPlayerLabel.value }
-        )
-        GameModel.addPlayer(
-            selectedMode.createPlayer().apply { label = if (realPlayerLabel.value == "O") "X" else "O" }
-        )
-        gameController.init()
+        gameController.startNewGame()
     }
 }

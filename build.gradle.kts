@@ -35,6 +35,15 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
 
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.14.2")
+
+    // client
+    implementation("io.ktor:ktor-client-websockets:1.5.4")
+    implementation("io.ktor:ktor-client-cio:1.5.4")
+
+    // server
+    implementation("io.ktor:ktor-server-netty:1.5.4")
+    implementation("io.ktor:ktor-websockets:1.5.4")
+    implementation("ch.qos.logback:logback-classic:1.2.3")
 }
 
 javafx {
