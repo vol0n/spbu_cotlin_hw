@@ -1,6 +1,6 @@
 package hw8.model
 
-import hw8.Cell.*
+import hw8.Cell.EMPTY
 import hw8.GameModel
 import hw8.Turn
 import kotlin.random.Random
@@ -9,10 +9,9 @@ interface Player {
     fun retrieveTurn(): Turn
     val isLongResponse: Boolean
     val name: String
-    val label: String
 }
 
-class ComputerRandom(private val game: GameModel, override val label: String) : Player {
+class ComputerRandom(private val game: GameModel) : Player {
     companion object {
         fun chooseRandomTurn(game: GameModel): Turn {
             val candidates = mutableListOf<Turn>()
@@ -31,7 +30,7 @@ class ComputerRandom(private val game: GameModel, override val label: String) : 
     override val name = "Computer with random strategy"
 }
 
-class ComputerAI(private val game: GameModel, override val label: String) : Player {
+class ComputerAI(private val game: GameModel) : Player {
     override val isLongResponse = false
     override fun retrieveTurn(): Turn {
         for (combo in game.getCombos()) {
@@ -44,7 +43,7 @@ class ComputerAI(private val game: GameModel, override val label: String) : Play
     override val name = "Computer with simple AI"
 }
 
-class RealPlayer(private val game: GameModel, override val label: String) : Player {
+class RealPlayer(private val game: GameModel) : Player {
     lateinit var turn: Turn
     fun makeTurn(turnFromUI: Turn) {
         turn = turnFromUI

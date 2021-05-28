@@ -1,12 +1,7 @@
 package hw8.views
 
-import hw8.GameModel
 import hw8.controllers.GameController
 import hw8.app.Styles.Companion.spacyButton
-import hw8.model.ComputerAI
-import hw8.model.ComputerRandom
-import hw8.model.Player
-import hw8.model.RealPlayer
 import javafx.beans.property.SimpleStringProperty
 import javafx.geometry.Pos
 import javafx.scene.control.Button
@@ -24,8 +19,8 @@ import tornadofx.togglebutton
 import tornadofx.togglegroup
 import tornadofx.vbox
 
-class MenuScreen() : View("Menu") {
-    val gameController: GameController by inject()
+class MenuScreen : View("Menu") {
+    private val gameController: GameController by inject()
     var gameModes = GameController.gameModes
 
     private val realPlayerLabel = SimpleStringProperty("X")

@@ -1,10 +1,10 @@
 package hw8
 
+import hw8.model.ComputerAI
+import hw8.model.ComputerRandom
 import hw8.model.Player
-import io.ktor.client.*
-import javafx.beans.property.ReadOnlyStringProperty
-import javafx.beans.property.SimpleStringProperty
-import tornadofx.onChange
+import hw8.model.RealPlayer
+import tornadofx.swap
 
 data class Turn(val rowPos: Int, val colPos: Int)
 
@@ -14,18 +14,17 @@ enum class Cell(val representation: String) {
     X("X")
 }
 
-class GameModel {
+abstract class GameModel {
     companion object {
         const val boardSize = 3
         const val numOfPlayers = 2
         val playersLabels = listOf(Cell.X, Cell.O)
     }
 
-    private val players = mutableListOf<Player>()
-    fun addPlayers(playersToUse: List<Player>) {
-        if (players.isEmpty()) {
-            if (playersToUse.size != numOfPlayers) error("There must be only 2 players for tic-tac-toe!")
-            playersToUse.map { players.add(it) }
+    protected abstract val players: MutableList<Player>
+    fun changeTheFirstPlayer() {
+        if (turnNumber == 0) {
+            players.swap(0, 1)
         }
     }
 
@@ -37,27 +36,18 @@ class GameModel {
         get() = board as List<List<Cell>>
     fun getCell(turn: Turn) = board[turn.rowPos][turn.colPos]
 
-    fun getTurn(cell: Cell): Turn {
-        for (i in 0..boardSize) {
-            for (j in 0..boardSize) {
-                if (board[i][j] === cell) return Turn(i, j)
-            }
-        }
-        error("No such cell!")
-    }
-
     private var turnNumber = 0
     private var isPlayable = true
     val isGameGoing
         get() = isPlayable
     private val currentPlayerIndex: Int
-        get() = turnNumber % players.size
+        get() = turnNumber % numOfPlayers
 
     fun getCurrentPlayer() = players[currentPlayerIndex]
     var winner: Player? = null
     var winningCombo: Combo? = null
     var onEndGame: (Player?, Combo?) -> Unit = { _, _ -> }
-    var onTurn: (Player, Turn, String) -> Unit = {_, _, _ -> }
+    var onTurn: (Player, Turn, String) -> Unit = { _, _, _ -> }
 
     private val combos = mutableListOf<Combo>()
     fun getCombos() = combos as List<Combo>
@@ -150,4 +140,16 @@ class GameModel {
         makeTurn(turn)
         play()
     }
+}
+
+class SingleModel : GameModel() {
+    override val players: MutableList<Player> = mutableListOf(RealPlayer(this), RealPlayer(this))
+}
+
+class RandomModel : GameModel() {
+    override val players = mutableListOf(RealPlayer(this), ComputerRandom(this))
+}
+
+class AIModel : GameModel() {
+    override val players = mutableListOf(RealPlayer(this), ComputerAI(this))
 }

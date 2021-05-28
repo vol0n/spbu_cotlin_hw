@@ -1,27 +1,26 @@
 package hw8.controllers
 
+import hw8.AIModel
 import hw8.GameModel
+import hw8.RandomModel
+import hw8.SingleModel
 import hw8.Turn
-import hw8.model.ComputerAI
-import hw8.model.ComputerRandom
 import hw8.model.RealPlayer
 import hw8.views.BoardScreen
 import hw8.views.EndGame
 import hw8.views.MenuScreen
 import tornadofx.Controller
-import tornadofx.bind
-import tornadofx.swap
 
-data class GameMode(val userMenuMessage: String, val name: String)
+data class GameMode(val userMenuMessage: String, val name: String, val createModel: () -> GameModel)
 
 class GameController : Controller() {
     private val boardScreen: BoardScreen by inject()
     private lateinit var game: GameModel
     companion object {
         val gameModes = listOf(
-            GameMode("Play against computer with random strategy", "Random"),
-            GameMode("Play against computer with simple AI", "AI"),
-            GameMode("Play with yourself", "Single")
+            GameMode("Play against computer with random strategy", "Random", ::RandomModel),
+            GameMode("Play against computer with simple AI", "AI", ::AIModel),
+            GameMode("Play with yourself", "Single", ::SingleModel)
         )
     }
     private val menuScreen: MenuScreen by inject()
@@ -30,22 +29,13 @@ class GameController : Controller() {
     }
 
     fun startNewGame() {
-        game = GameModel()
-        val realPlayerLabel = menuScreen.getChosenLabel()
-        val secondPlayerLabel = if (realPlayerLabel == "O") "X" else "O"
-        val players = mutableListOf(
-            RealPlayer(game, realPlayerLabel),
-            when (menuScreen.getSelectedMode().name) {
-                "Random" -> ComputerRandom(game, secondPlayerLabel)
-                "AI" -> ComputerAI(game, secondPlayerLabel)
-                else -> RealPlayer(game, secondPlayerLabel)
-            }
-        )
-        if (realPlayerLabel == "O") players.swap(0, 1)
-        game.addPlayers(players)
+        game = menuScreen.getSelectedMode().createModel()
+        if (menuScreen.getChosenLabel() == "O") {
+            game.changeTheFirstPlayer()
+        }
 
         game.onEndGame = { player, _ ->
-            val endGameMessage = when(player) {
+            val endGameMessage = when (player) {
                 null -> "It is draw: nobody won!"
                 else -> "${player.name} won!"
             }
