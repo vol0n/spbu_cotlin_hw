@@ -26,6 +26,38 @@ class Benchmark(inputPath: String = this::class.java.getResource("benchmarkParam
     @Serializable
     private data class DataFrame(val threadNum: List<Int>, val arraySize: List<Int>, val time: List<Double>)
     private var objForSerialization: DataFrame
+    private var dataFrame: Map<String, Any>
+
+    init {
+        val input = Json.decodeFromString<BenchmarkParameters>(File(inputPath).readText())
+        val rand = java.util.Random()
+
+        val threadNum = MutableList(input.arraySizes.size * input.threadsNums.size) { 0 }
+        val arraySize = MutableList(input.arraySizes.size * input.threadsNums.size) { 0 }
+        val time = MutableList(input.arraySizes.size * input.threadsNums.size) { 0.0 }
+        var i = 0
+        for (size in input.arraySizes) {
+            for (threadNo in input.threadsNums) {
+                val test = IntArray(size) { rand.nextInt() }
+                time[i] = measureTime {
+                        sortMT(test, threadNo, true)
+                    }.inSeconds
+                arraySize[i] = size
+                threadNum[i] = threadNo
+                i++
+            }
+        }
+        objForSerialization = DataFrame(threadNum, arraySize, time)
+        dataFrame = mapOf<String, Any>("threadNum" to threadNum.map { it.toString() },
+            "arraySize" to arraySize, "time" to time)
+    }
+
+    fun saveMeasurementsAsJSON(measurementsPath: String = "measurements") = File("$measurementsPath.json")
+        .writeText(
+            Json { prettyPrint = true }.encodeToString(objForSerialization)
+        )
+
+    fun plot(location: String = "Performance-plot") = buildPlot(dataFrame, location)
 
     companion object {
         @JvmStatic
@@ -54,44 +86,11 @@ class Benchmark(inputPath: String = this::class.java.getResource("benchmarkParam
             ggsave(p, "$location.png")
         }
     }
-
-    private var dataFrame: Map<String, Any>
-
-    init {
-        val input = Json.decodeFromString<BenchmarkParameters>(File(inputPath).readText())
-        val rand = java.util.Random()
-
-        val threadNum = MutableList(input.arraySizes.size * input.threadsNums.size) { 0 }
-        val arraySize = MutableList(input.arraySizes.size * input.threadsNums.size) { 0 }
-        val time = MutableList(input.arraySizes.size * input.threadsNums.size) { 0.0 }
-        var i = 0
-        for (size in input.arraySizes) {
-            for (threadNo in input.threadsNums) {
-                val test = IntArray(size) { _ -> rand.nextInt() }
-                time[i] =
-                    measureTime {
-                        ParallelMergeSort(test, test, threadNo)
-                    }.inSeconds
-                arraySize[i] = size
-                threadNum[i] = threadNo
-                i++
-            }
-        }
-        objForSerialization = DataFrame(threadNum, arraySize, time)
-        dataFrame = mapOf<String, Any>("threadNum" to threadNum, "arraySize" to arraySize, "time" to time)
-    }
-
-    fun saveMeasurementsAsJSON(measurementsPath: String = "measurements") = File("$measurementsPath.json")
-        .writeText(
-            Json { prettyPrint = true }.encodeToString(objForSerialization)
-        )
-
-    fun plot(location: String = "Performance-plot") = buildPlot(dataFrame, location)
 }
 
 @ExperimentalTime
 fun main() {
-    val bench = Benchmark()
-    bench.plot()
-    bench.saveMeasurementsAsJSON()
+     val bench = Benchmark()
+     bench.plot()
+     bench.saveMeasurementsAsJSON()
 }

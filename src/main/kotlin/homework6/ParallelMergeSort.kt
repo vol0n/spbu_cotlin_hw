@@ -1,63 +1,81 @@
 package homework6
 
-class ParallelMergeSort(val destinationArray: IntArray, val sourceArray: IntArray, initialNumberOfThreads: Int) {
-    init {
-        sort(SubArray(0, sourceArray.lastIndex), destinationArray, 0, initialNumberOfThreads)
-    }
+fun sortMT(sourceArray: IntArray, numberOfThreads: Int, sortSourceArray: Boolean = false) =
+    ParallelMergeSort(sourceArray, numberOfThreads, sortSourceArray).sort()
+
+private class ParallelMergeSort(
+    private val sourceArray: IntArray,
+    private val initialNumberOfThreads: Int,
+    sortSourceArray: Boolean = false
+) {
+    private var destinationArray = if (sortSourceArray) sourceArray else IntArray(sourceArray.size)
 
     private data class SubArray(val left: Int, val right: Int) {
-        val size: Int
-            get() = right - left + 1
-        val middle: Int
-            get() = (right + left) / 2
+        val size = right - left + 1
+        val middle = (right + left) / 2
     }
 
-   private fun lowerBound(value: Int, array: IntArray, sa: SubArray): Int {
+    fun sort(): IntArray {
+        sort(SubArray(0, sourceArray.lastIndex), destinationArray, 0, initialNumberOfThreads)
+        val result = destinationArray
+        destinationArray = IntArray(sourceArray.size)
+        return result
+    }
+
+    // for detekt to calm down on parameter list
+    private data class ArraysForMerge(val from: IntArray, val to: IntArray)
+
+    private fun lowerBound(value: Int, array: IntArray, sa: SubArray): Int {
         if (sa.left > sa.right) return sa.left
-        var l = sa.left - 1
-        var r = sa.right + 1
-        var mid: Int
-        // array[l] < value <= array[r]
-        while (l + 1 < r) {
-            mid = (l + r) / 2
-            if (array[mid] < value) {
-                l = mid
+        var leftBorder = sa.left - 1
+        var rightBorder = sa.right + 1
+        var middleIndex: Int
+        // array[leftBorder] < value <= array[rightBorder]
+        while (leftBorder + 1 < rightBorder) {
+            middleIndex = (leftBorder + rightBorder) / 2
+            if (array[middleIndex] < value) {
+                leftBorder = middleIndex
             } else {
-                r = mid
+                rightBorder = middleIndex
             }
         }
-        return r
+        return rightBorder
     }
 
-   // for detekt to calm down on parameter list
-   private data class ArraysForMerge(val from: IntArray, val to: IntArray)
-
-   // sort sourceArray[l, r] and save into destArray[s, s + r - l]
-   private fun sort(sa: SubArray, destArray: IntArray, s: Int, numberOfThreads: Int = 1) {
-        if (sourceArray.isEmpty()) return
-        if (sa.size == 1) {
-            destArray[s] = sourceArray[sa.left]
+   // sort sourceArray[l, r] and save into destArray[s, s + r - l], s - starting index in destination array
+   private fun sort(
+       sourceArray: SubArray,
+       destArray: IntArray,
+       startIndexInDestArray: Int,
+       numberOfThreads: Int = 1
+   ) {
+        if (this.sourceArray.isEmpty()) return
+        if (sourceArray.size == 1) {
+            destArray[startIndexInDestArray] = this.sourceArray[sourceArray.left]
             return
         }
-        val tempArray = IntArray(sa.size)
+        val tempArray = IntArray(sourceArray.size)
         // number of elements in the right part of subArray sa
-        val n1 = sa.middle - sa.left + 1
+        val numOfElemsInRightPartOfSourceArray = sourceArray.middle - sourceArray.left + 1
         if (numberOfThreads != 1) {
-            val th = Thread { sort(SubArray(sa.left, sa.middle), tempArray, 0, numberOfThreads / 2) }
+            val th = Thread { sort(SubArray(sourceArray.left, sourceArray.middle), tempArray, 0,
+                numberOfThreads / 2) }
             th.start()
-            sort(SubArray(sa.middle + 1, sa.right), tempArray, n1,
+            sort(SubArray(sourceArray.middle + 1, sourceArray.right), tempArray,
+                numOfElemsInRightPartOfSourceArray,
                 numberOfThreads - numberOfThreads / 2)
             th.join()
         } else {
-            sort(SubArray(sa.left, sa.middle), tempArray, 0)
-            sort(SubArray(sa.middle + 1, sa.right), tempArray, n1)
+            sort(SubArray(sourceArray.left, sourceArray.middle), tempArray, 0)
+            sort(SubArray(sourceArray.middle + 1, sourceArray.right), tempArray,
+                numOfElemsInRightPartOfSourceArray)
         }
 
         merge(
             ArraysForMerge(tempArray, destArray),
-            SubArray(0, n1 - 1),
-            SubArray(n1, sa.size - 1),
-            s,
+            SubArray(0, numOfElemsInRightPartOfSourceArray - 1),
+            SubArray(numOfElemsInRightPartOfSourceArray, sourceArray.size - 1),
+            startIndexInDestArray,
             numberOfThreads
         )
    }
@@ -65,44 +83,49 @@ class ParallelMergeSort(val destinationArray: IntArray, val sourceArray: IntArra
     // merge two sorted sourceArray[l1, r1] and sourceArray[l2, r2] into destArray[s, s + r1 - l1 + r2 - l2 + 1]
     private fun merge(
         arraysForMerge: ArraysForMerge,
-        sa1: SubArray,
-        sa2: SubArray,
-        s: Int,
+        sourceArray1: SubArray,
+        sourceArray2: SubArray,
+        startIndexInDestArray: Int,
         numberOfThreads: Int = 1
     ) {
-        if (sa1.size < sa2.size) {
-            merge(arraysForMerge, sa2, sa1, s, numberOfThreads)
+        if (sourceArray1.size < sourceArray2.size) {
+            merge(arraysForMerge, sourceArray2, sourceArray1, startIndexInDestArray, numberOfThreads)
             return
         }
-        if (sa1.size == 0) return
+        if (sourceArray1.size == 0) return
 
-        val mid1 = sa1.middle
-        val mid2 = lowerBound(arraysForMerge.from[mid1], arraysForMerge.from, sa2)
-        val mid3 = s + (mid1 - sa1.left) + mid2 - sa2.left
+        val mid1 = sourceArray1.middle
+        val mid2 = lowerBound(arraysForMerge.from[mid1], arraysForMerge.from, sourceArray2)
+        val mid3 = startIndexInDestArray + (mid1 - sourceArray1.left) + mid2 - sourceArray2.left
         arraysForMerge.to[mid3] = arraysForMerge.from[mid1]
         if (numberOfThreads > 1) {
             val th = Thread {
-                merge(arraysForMerge, SubArray(sa1.left, mid1 - 1), SubArray(sa2.left, mid2 - 1), s,
+                merge(arraysForMerge,
+                    SubArray(sourceArray1.left, mid1 - 1),
+                    SubArray(sourceArray2.left, mid2 - 1),
+                    startIndexInDestArray,
                     numberOfThreads / 2)
             }
             th.start()
             merge(
                 arraysForMerge,
-                 SubArray(mid1 + 1, sa1.right), SubArray(mid2, sa2.right), mid3 + 1,
+                SubArray(mid1 + 1, sourceArray1.right),
+                SubArray(mid2, sourceArray2.right),
+                mid3 + 1,
                 numberOfThreads - numberOfThreads / 2
             )
             th.join()
         } else {
             merge(
                 arraysForMerge,
-                SubArray(sa1.left, mid1 - 1),
-                SubArray(sa2.left, mid2 - 1),
-                s
+                SubArray(sourceArray1.left, mid1 - 1),
+                SubArray(sourceArray2.left, mid2 - 1),
+                startIndexInDestArray
             )
             merge(
                 arraysForMerge,
-                SubArray(mid1 + 1, sa1.right),
-                SubArray(mid2, sa2.right),
+                SubArray(mid1 + 1, sourceArray1.right),
+                SubArray(mid2, sourceArray2.right),
                 mid3 + 1
             )
         }

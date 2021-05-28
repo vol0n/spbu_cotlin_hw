@@ -34,7 +34,7 @@ internal class ParallelMergeSortKtTest {
     @ParameterizedTest
     @MethodSource("combineDataSortAndThreadsNumArgs")
     fun testSortMtMultiThread(actual: IntArray, expected: IntArray, numberOfThreads: Int) {
-        ParallelMergeSort(actual, actual, numberOfThreads)
+        sortMT(actual, numberOfThreads, true)
         assertArrayEquals(expected, actual)
     }
 }
