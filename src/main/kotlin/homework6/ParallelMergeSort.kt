@@ -1,25 +1,28 @@
 package homework6
 
-fun sortMT(sourceArray: IntArray, numberOfThreads: Int, sortSourceArray: Boolean = false) =
-    ParallelMergeSort(sourceArray, numberOfThreads, sortSourceArray).sort()
+fun sortMT(sourceArray: IntArray, numberOfThreads: Int) =
+    ParallelMergeSort.sortMT(sourceArray, numberOfThreads)
 
-private class ParallelMergeSort(
-    private val sourceArray: IntArray,
-    private val initialNumberOfThreads: Int,
-    sortSourceArray: Boolean = false
-) {
-    private var destinationArray = if (sortSourceArray) sourceArray else IntArray(sourceArray.size)
-
+private object ParallelMergeSort {
     private data class SubArray(val left: Int, val right: Int) {
         val size = right - left + 1
         val middle = (right + left) / 2
     }
 
-    fun sort(): IntArray {
-        sort(SubArray(0, sourceArray.lastIndex), destinationArray, 0, initialNumberOfThreads)
-        val result = destinationArray
-        destinationArray = IntArray(sourceArray.size)
-        return result
+    fun sortMT(
+        sourceArray: IntArray,
+        initialNumberOfThreads: Int,
+    ): IntArray {
+        if (initialNumberOfThreads < 1) {
+            error(
+                """
+                    Invalid number of threads: $initialNumberOfThreads. 
+                    Number of threads must be >= 1.
+                """
+            )
+        }
+        sort(sourceArray, SubArray(0, sourceArray.lastIndex), sourceArray, 0, initialNumberOfThreads)
+        return sourceArray
     }
 
     // for detekt to calm down on parameter list
@@ -44,30 +47,31 @@ private class ParallelMergeSort(
 
    // sort sourceArray[l, r] and save into destArray[s, s + r - l], s - starting index in destination array
    private fun sort(
+       initialArray: IntArray,
        sourceArray: SubArray,
        destArray: IntArray,
        startIndexInDestArray: Int,
        numberOfThreads: Int = 1
    ) {
-        if (this.sourceArray.isEmpty()) return
+        if (initialArray.isEmpty()) return
         if (sourceArray.size == 1) {
-            destArray[startIndexInDestArray] = this.sourceArray[sourceArray.left]
+            destArray[startIndexInDestArray] = initialArray[sourceArray.left]
             return
         }
         val tempArray = IntArray(sourceArray.size)
         // number of elements in the right part of subArray sa
         val numOfElemsInRightPartOfSourceArray = sourceArray.middle - sourceArray.left + 1
-        if (numberOfThreads != 1) {
-            val th = Thread { sort(SubArray(sourceArray.left, sourceArray.middle), tempArray, 0,
+        if (numberOfThreads > 1) {
+            val th = Thread { sort(initialArray, SubArray(sourceArray.left, sourceArray.middle), tempArray, 0,
                 numberOfThreads / 2) }
             th.start()
-            sort(SubArray(sourceArray.middle + 1, sourceArray.right), tempArray,
+            sort(initialArray, SubArray(sourceArray.middle + 1, sourceArray.right), tempArray,
                 numOfElemsInRightPartOfSourceArray,
                 numberOfThreads - numberOfThreads / 2)
             th.join()
         } else {
-            sort(SubArray(sourceArray.left, sourceArray.middle), tempArray, 0)
-            sort(SubArray(sourceArray.middle + 1, sourceArray.right), tempArray,
+            sort(initialArray, SubArray(sourceArray.left, sourceArray.middle), tempArray, 0)
+            sort(initialArray, SubArray(sourceArray.middle + 1, sourceArray.right), tempArray,
                 numOfElemsInRightPartOfSourceArray)
         }
 

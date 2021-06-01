@@ -40,7 +40,7 @@ class Benchmark(inputPath: String = this::class.java.getResource("benchmarkParam
             for (threadNo in input.threadsNums) {
                 val test = IntArray(size) { rand.nextInt() }
                 time[i] = measureTime {
-                        sortMT(test, threadNo, true)
+                        sortMT(test, threadNo)
                     }.inSeconds
                 arraySize[i] = size
                 threadNum[i] = threadNo
