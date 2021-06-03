@@ -12,7 +12,7 @@ class Tile : StackPane() {
     companion object {
         const val tileSize = 100.0
     }
-    var wasClicked = false
+    // var wasClicked = false
     val containedText = Text("")
     var onClick: () -> Unit = {}
     init {
@@ -25,10 +25,10 @@ class Tile : StackPane() {
         children.filterIsInstance<Text>().addClass(Styles.styledText)
 
         setOnMouseClicked {
-            if (!wasClicked) {
+            //if (!wasClicked) {
                 onClick()
-                wasClicked = true
-            }
+            //    wasClicked = true
+            //}
         }
     }
 }

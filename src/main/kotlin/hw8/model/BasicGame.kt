@@ -1,11 +1,12 @@
-package hw8
+package h8.model
 
 import hw8.model.ComputerAI
 import hw8.model.ComputerRandom
 import hw8.model.Player
-import hw8.model.RealPlayer
-import tornadofx.swap
+import hw8.model.LongResponsePlayer
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class Turn(val rowPos: Int, val colPos: Int)
 
 enum class Cell(val representation: String) {
@@ -14,36 +15,40 @@ enum class Cell(val representation: String) {
     X("X")
 }
 
-abstract class GameModel {
+abstract class BasicGame {
     companion object {
         const val boardSize = 3
         const val numOfPlayers = 2
         val playersLabels = listOf(Cell.X, Cell.O)
     }
 
-    protected abstract val players: MutableList<Player>
-    fun changeTheFirstPlayer() {
-        if (turnNumber == 0) {
-            players.swap(0, 1)
-        }
-    }
+    protected abstract val players: List<Player>
 
     private val board: List<MutableList<Cell>> = List(boardSize) {
         MutableList(boardSize) { Cell.EMPTY }
     }
 
+    protected fun clearBoard() {
+        for (i in 0 until boardSize) {
+            for (j in 0 until boardSize) {
+                board[i][j] = Cell.EMPTY
+            }
+        }
+    }
+
     val gameBoard
         get() = board as List<List<Cell>>
+
     fun getCell(turn: Turn) = board[turn.rowPos][turn.colPos]
 
-    private var turnNumber = 0
-    private var isPlayable = true
-    val isGameGoing
-        get() = isPlayable
-    private val currentPlayerIndex: Int
-        get() = turnNumber % numOfPlayers
+    protected var turnNumber = 0
+    protected var isPlayable = true
+    protected var isGameStarted = false
+    open val isGameGoing
+        get() = isPlayable && isGameStarted
+    protected val currentPlayer: Player
+        get() = players[turnNumber % numOfPlayers]
 
-    fun getCurrentPlayer() = players[currentPlayerIndex]
     var winner: Player? = null
     var winningCombo: Combo? = null
     var onEndGame: (Player?, Combo?) -> Unit = { _, _ -> }
@@ -77,17 +82,17 @@ abstract class GameModel {
         ))
     }
 
-    fun play() {
+    open fun play() {
         if (!isPlayable) return
-        var currentPlayer = players[currentPlayerIndex]
+        isGameStarted = true
         while (!currentPlayer.isLongResponse) {
-            val turn = currentPlayer.retrieveTurn()
+            val turn = currentPlayer.retrieveTurn(board)
             makeTurn(turn)
             if (!isPlayable) return
-            currentPlayer = players[currentPlayerIndex]
         }
     }
 
+    // contains a sequence of positions (Turn) that compose winning combo if all Cell are not empty have the same value
     inner class Combo(private val combo: List<Turn>) {
         fun isComplete(): Boolean {
             if (getCell(combo[0]) == Cell.EMPTY) return false
@@ -106,6 +111,7 @@ abstract class GameModel {
         }
     }
 
+    // check if somebody won or it is draw, if yes calls onEndGame
     private fun checkState() {
         if (!isPlayable) {
             return
@@ -114,7 +120,7 @@ abstract class GameModel {
         for (combo in combos) {
             if (combo.isComplete()) {
                 isPlayable = false
-                winner = getCurrentPlayer()
+                winner = currentPlayer
                 winningCombo = combo
             }
         }
@@ -128,28 +134,42 @@ abstract class GameModel {
 
     private fun makeTurn(turn: Turn) {
         require(board[turn.rowPos][turn.colPos] == Cell.EMPTY) { "This cell is already used!" }
-        board[turn.rowPos][turn.colPos] = playersLabels[currentPlayerIndex]
-        onTurn(players[currentPlayerIndex], turn, playersLabels[currentPlayerIndex].representation)
+        board[turn.rowPos][turn.colPos] = playersLabels[turnNumber % numOfPlayers]
+        onTurn(currentPlayer, turn, playersLabels[turnNumber % numOfPlayers].representation)
         checkState()
         turnNumber++
     }
 
-    fun resumeWhenResponseReady() {
-        if (!isPlayable) return
-        val turn = players[currentPlayerIndex].retrieveTurn()
+    protected open fun resumeWhenResponseReady(resumingPlayer: Player, turn: Turn) {
+        if (!isGameGoing || currentPlayer != resumingPlayer) return
         makeTurn(turn)
         play()
     }
 }
 
-class SingleModel : GameModel() {
-    override val players: MutableList<Player> = mutableListOf(RealPlayer(this), RealPlayer(this))
+abstract class LocalGame(uIPlayerLabel: String = "X") : BasicGame() {
+    init {
+        if (uIPlayerLabel == "O") turnNumber = 1
+    }
+    fun deliverTurnFromUI(turn: Turn) {
+        if (currentPlayer is LongResponsePlayer) {
+            (currentPlayer as LongResponsePlayer).makeTurn(turn)
+        }
+    }
 }
 
-class RandomModel : GameModel() {
-    override val players = mutableListOf(RealPlayer(this), ComputerRandom(this))
+class SingleGame(uIPlayerLabel: String = "X") : LocalGame(uIPlayerLabel) {
+    override val players: MutableList<Player> = mutableListOf(
+        LongResponsePlayer(::resumeWhenResponseReady),
+        LongResponsePlayer(::resumeWhenResponseReady)
+    )
 }
 
-class AIModel : GameModel() {
-    override val players = mutableListOf(RealPlayer(this), ComputerAI(this))
+class RandomGame(uIPlayerLabel: String = "X") : LocalGame(uIPlayerLabel) {
+    override val players = mutableListOf(LongResponsePlayer(::resumeWhenResponseReady), ComputerRandom())
 }
+
+class AIGame(uIPlayerLabel: String = "X") : LocalGame(uIPlayerLabel) {
+    override val players = mutableListOf(LongResponsePlayer(this::resumeWhenResponseReady), ComputerAI(this))
+}
+

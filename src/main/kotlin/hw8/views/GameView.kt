@@ -3,6 +3,7 @@ package hw8.views
 import javafx.scene.control.Button
 import hw8.app.Styles
 import hw8.controllers.GameController
+import io.ktor.util.*
 import javafx.geometry.Pos
 import tornadofx.View
 import tornadofx.borderpane
@@ -12,6 +13,7 @@ import tornadofx.action
 import tornadofx.spacer
 import tornadofx.addClass
 
+@KtorExperimentalAPI
 class GameView : View() {
     val gameController: GameController by inject()
     val boardScreen: BoardScreen by inject()

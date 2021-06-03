@@ -39,6 +39,9 @@ dependencies {
     // client
     implementation("io.ktor:ktor-client-websockets:1.5.4")
     implementation("io.ktor:ktor-client-cio:1.5.4")
+    implementation("io.ktor:ktor-serialization:1.5.4")
+    implementation("io.ktor:ktor-client-gson:1.5.4")
+    implementation("io.ktor:ktor-client-serialization:1.5.3")
 
     // server
     implementation("io.ktor:ktor-server-netty:1.5.4")

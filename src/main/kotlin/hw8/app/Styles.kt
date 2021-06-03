@@ -17,6 +17,8 @@ class Styles : Stylesheet() {
        val menuScreen by cssclass()
        val modeLabel by cssclass()
        val sideLabel by cssclass()
+       val vbox by cssclass()
+       val inviteScreen by cssclass()
        val spacingBetweenBtns = 10.px
        val btnWidth = 300.px
        val labelSz = 40.px
@@ -26,9 +28,25 @@ class Styles : Stylesheet() {
        val toggleBtns by cssclass()
        val toggleBtnsFontSz = 20.px
        val spacingBetweenToggleBtns = 40.px
+
+       val loginScreenWidth = 300.0
+       val loginScreenHeight = 125.0
    }
 
     init {
+        inviteScreen {
+            padding = box(10.px)
+            spacing = spacingBetweenBtns
+
+            and(button) {
+                alignment = Pos.CENTER
+            }
+
+            and(label) {
+                fontSize = 15.px
+            }
+        }
+
         toggleBtns {
             alignment = Pos.CENTER
             fontSize = toggleBtnsFontSz
@@ -43,6 +61,13 @@ class Styles : Stylesheet() {
         sideLabel {
             fontSize = 3.em
             textFill = c(175, 47, 47, 0.5)
+        }
+
+        vbox {
+            button {
+                padding = box(spacingBetweenBtns)
+                alignment = Pos.CENTER
+            }
         }
 
         menuScreen {

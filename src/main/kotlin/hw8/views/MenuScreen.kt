@@ -7,6 +7,7 @@ import javafx.geometry.Pos
 import javafx.scene.control.Button
 import hw8.app.Styles
 import hw8.controllers.GameMode
+import io.ktor.util.*
 import tornadofx.View
 import tornadofx.action
 import tornadofx.addClass
@@ -19,6 +20,7 @@ import tornadofx.togglebutton
 import tornadofx.togglegroup
 import tornadofx.vbox
 
+@KtorExperimentalAPI
 class MenuScreen : View("Menu") {
     private val gameController: GameController by inject()
     var gameModes = GameController.gameModes

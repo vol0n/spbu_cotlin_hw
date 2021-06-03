@@ -1,23 +1,23 @@
 package hw8.model
 
-import hw8.Cell.EMPTY
-import hw8.GameModel
-import hw8.Turn
+import h8.model.Cell
+import h8.model.BasicGame
+import h8.model.Turn
 import kotlin.random.Random
 
 interface Player {
-    fun retrieveTurn(): Turn
+    fun retrieveTurn(field: List<List<Cell>>): Turn
     val isLongResponse: Boolean
     val name: String
 }
 
-class ComputerRandom(private val game: GameModel) : Player {
+class ComputerRandom : Player {
     companion object {
-        fun chooseRandomTurn(game: GameModel): Turn {
+        fun chooseRandomTurn(field: List<List<Cell>>): Turn {
             val candidates = mutableListOf<Turn>()
-            game.gameBoard.mapIndexed { i, row ->
+            field.mapIndexed { i, row ->
                 row.mapIndexed { j, cell ->
-                    if (cell == EMPTY) {
+                    if (cell == Cell.EMPTY) {
                         candidates.add(Turn(rowPos = i, colPos = j))
                     }
                 }
@@ -26,33 +26,32 @@ class ComputerRandom(private val game: GameModel) : Player {
         }
     }
     override val isLongResponse = false
-    override fun retrieveTurn() = chooseRandomTurn(game)
+    override fun retrieveTurn(field: List<List<Cell>>) = chooseRandomTurn(field)
     override val name = "Computer with random strategy"
 }
 
-class ComputerAI(private val game: GameModel) : Player {
+class ComputerAI(private val game: BasicGame) : Player {
     override val isLongResponse = false
-    override fun retrieveTurn(): Turn {
+    override fun retrieveTurn(field: List<List<Cell>>): Turn {
         for (combo in game.getCombos()) {
             if (combo.isCompletable()) {
                 return combo.getCompletingTurn()
             }
         }
-        return ComputerRandom.chooseRandomTurn(game)
+        return ComputerRandom.chooseRandomTurn(field)
     }
     override val name = "Computer with simple AI"
 }
 
-class RealPlayer(private val game: GameModel) : Player {
-    lateinit var turn: Turn
-    fun makeTurn(turnFromUI: Turn) {
-        turn = turnFromUI
-        game.resumeWhenResponseReady()
+open class LongResponsePlayer(private val callBackWhenReady: (Player, Turn) -> Unit, override var name: String = "you") : Player {
+    private var turn: Turn? = null
+    open fun makeTurn(turnFromOutSource: Turn) {
+            turn = turnFromOutSource
+            callBackWhenReady(this, turn as Turn)
     }
 
-    override fun retrieveTurn(): Turn {
-        return turn
+    override fun retrieveTurn(field: List<List<Cell>>): Turn {
+        return turn ?: error("Turn is not ready!")
     }
     override val isLongResponse = true
-    override var name = "you"
 }

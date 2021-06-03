@@ -1,21 +1,28 @@
 package hw8.app
 
-import hw8.controllers.GameController
-import hw8.views.MenuScreen
+import hw8.controllers.WebGameController
+import hw8.views.ModeScreen
+import io.ktor.util.KtorExperimentalAPI
 import javafx.stage.Stage
 import tornadofx.App
+import tornadofx.find
 import tornadofx.launch
 
-class TicTacToeApp : App(MenuScreen::class, Styles::class) {
-    private val gameController: GameController by inject()
+@KtorExperimentalAPI
+class TicTacToeApp : App(ModeScreen::class, Styles::class) {
     override fun start(stage: Stage) {
-        stage.minHeight = Styles.winHeight.value
-        stage.minWidth = Styles.winWidth.value
-        gameController.init()
+        stage.height = Styles.winHeight.value
+        stage.width = Styles.winWidth.value
         super.start(stage)
+    }
+
+    override fun stop() {
+        find<WebGameController>().stopAllTasks()
+        super.stop()
     }
 }
 
+@KtorExperimentalAPI
 fun main() {
     launch<TicTacToeApp>()
 }
