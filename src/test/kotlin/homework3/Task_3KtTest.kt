@@ -7,8 +7,8 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import java.io.File
-import java.lang.StrictMath.min
 import java.nio.file.Path
+import java.util.*
 
 
 class Task_3KtTest {
@@ -32,7 +32,12 @@ class Task_3KtTest {
             tmpDirForGenerated.toString()
         )
 
-        val actual = File("${tmpDirForGenerated}/$testDirName/${testDirName.capitalize()}.kt").readText()
+        val actual = File("${tmpDirForGenerated}/$testDirName/${testDirName.replaceFirstChar {
+            if (it.isLowerCase()) it.titlecase(
+                Locale.getDefault()
+            ) else it.toString()
+        }}.kt")
+            .readText()
         val expected = this.javaClass.getResource("$testDirName/$testDirName.txt").readText()
 
         assertEquals(expected, actual)
