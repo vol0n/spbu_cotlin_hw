@@ -22,8 +22,16 @@ dependencies {
     implementation("com.charleskorn.kaml:kaml:0.28.3")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.1.0")
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.5.0")
+
     implementation("com.squareup:kotlinpoet:1.7.2")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.12.2")
+    implementation("io.ktor:ktor-client-core:1.5.3")
+    implementation("io.ktor:ktor-client-cio:1.5.3")
+
+
+
+
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0-RC")
 
     // for plotting with lets-plot
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
