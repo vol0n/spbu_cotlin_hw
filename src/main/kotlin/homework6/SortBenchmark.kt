@@ -14,6 +14,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
+import kotlin.time.DurationUnit
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
 
@@ -40,8 +41,8 @@ class Benchmark(inputPath: String = this::class.java.getResource("benchmarkParam
             for (threadNo in input.threadsNums) {
                 val test = IntArray(size) { rand.nextInt() }
                 time[i] = measureTime {
-                        sortMT(test, threadNo)
-                    }.inSeconds
+                    sortMT(test, threadNo)
+                }.toDouble(DurationUnit.SECONDS)
                 arraySize[i] = size
                 threadNum[i] = threadNo
                 i++
@@ -54,7 +55,7 @@ class Benchmark(inputPath: String = this::class.java.getResource("benchmarkParam
 
     fun saveMeasurementsAsJSON(measurementsPath: String = "measurements") = File("$measurementsPath.json")
         .writeText(
-            Json { prettyPrint = true }.encodeToString(objForSerialization)
+            Json.encodeToString(objForSerialization)
         )
 
     fun plot(location: String = "Performance-plot") = buildPlot(dataFrame, location)
