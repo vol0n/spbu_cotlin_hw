@@ -1,27 +1,35 @@
 package homework6
 
-fun sortMT(sourceArray: IntArray, numberOfThreads: Int) =
-    ParallelMergeSort.sortMT(sourceArray, numberOfThreads)
+enum class ResourceKind(val kind: String) {
+    THREADS("Threads"), COROUTINES("Coroutines")
+}
 
-private object ParallelMergeSort {
+interface Sorter {
+    fun sort(sourceArray: IntArray, numberOfResources: Int): IntArray
+    val resourcesKind: ResourceKind
+}
+
+object ParallelMergeSort : Sorter {
     private data class SubArray(val left: Int, val right: Int) {
         val size = right - left + 1
         val middle = (right + left) / 2
     }
 
-    fun sortMT(
+    override val resourcesKind: ResourceKind = ResourceKind.THREADS
+
+    override fun sort(
         sourceArray: IntArray,
-        initialNumberOfThreads: Int,
+        numberOfResources: Int,
     ): IntArray {
-        if (initialNumberOfThreads < 1) {
+        if (numberOfResources < 1) {
             error(
                 """
-                    Invalid number of threads: $initialNumberOfThreads. 
+                    Invalid number of threads: $numberOfResources. 
                     Number of threads must be >= 1.
                 """
             )
         }
-        sort(sourceArray, SubArray(0, sourceArray.lastIndex), sourceArray, 0, initialNumberOfThreads)
+        sort(sourceArray, SubArray(0, sourceArray.lastIndex), sourceArray, 0, numberOfResources)
         return sourceArray
     }
 

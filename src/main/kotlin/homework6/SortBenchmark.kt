@@ -19,13 +19,15 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
 
 @Serializable
-data class BenchmarkParameters(val threadsNums: List<Int>, val arraySizes: List<Int>)
+data class BenchmarkParameters(val resourcesNums: List<Int>, val arraySizes: List<Int>)
 
 @ExperimentalTime
-class Benchmark(inputPath: String = this::class.java.getResource("benchmarkParameters.json").path) {
-
+class Benchmark(
+    private val sorter: Sorter,
+    inputPath: String = this::class.java.getResource("benchmarkParameters.json").path
+) {
     @Serializable
-    private data class DataFrame(val threadNum: List<Int>, val arraySize: List<Int>, val time: List<Double>)
+    private data class DataFrame(val resourcesNum: List<Int>, val arraySize: List<Int>, val time: List<Double>)
     private var objForSerialization: DataFrame
     private var dataFrame: Map<String, Any>
 
@@ -33,23 +35,24 @@ class Benchmark(inputPath: String = this::class.java.getResource("benchmarkParam
         val input = Json.decodeFromString<BenchmarkParameters>(File(inputPath).readText())
         val rand = java.util.Random()
 
-        val threadNum = MutableList(input.arraySizes.size * input.threadsNums.size) { 0 }
-        val arraySize = MutableList(input.arraySizes.size * input.threadsNums.size) { 0 }
-        val time = MutableList(input.arraySizes.size * input.threadsNums.size) { 0.0 }
+        val resourcesNumbers = MutableList(input.arraySizes.size * input.resourcesNums.size) { 0 }
+        val arraySize = MutableList(input.arraySizes.size * input.resourcesNums.size) { 0 }
+        val time = MutableList(input.arraySizes.size * input.resourcesNums.size) { 0.0 }
         var i = 0
         for (size in input.arraySizes) {
-            for (threadNo in input.threadsNums) {
+            for (resourcesNumber in input.resourcesNums) {
                 val test = IntArray(size) { rand.nextInt() }
                 time[i] = measureTime {
-                    sortMT(test, threadNo)
+                    sorter.sort(test, resourcesNumber)
                 }.toDouble(DurationUnit.SECONDS)
                 arraySize[i] = size
-                threadNum[i] = threadNo
+                resourcesNumbers[i] = resourcesNumber
                 i++
             }
         }
-        objForSerialization = DataFrame(threadNum, arraySize, time)
-        dataFrame = mapOf<String, Any>("threadNum" to threadNum.map { it.toString() },
+        objForSerialization = DataFrame(resourcesNumbers, arraySize, time)
+        dataFrame = mapOf<String, Any>(
+            sorter.resourcesKind.kind to resourcesNumbers.map { it.toString() },
             "arraySize" to arraySize, "time" to time)
     }
 
@@ -60,38 +63,40 @@ class Benchmark(inputPath: String = this::class.java.getResource("benchmarkParam
 
     fun plot(location: String = "Performance-plot") = buildPlot(dataFrame, location)
 
-    companion object {
-        @JvmStatic
-        fun plotFromJSON(measurementsPath: String, location: String = "Performance-plot") {
-            buildPlot(
-                Json.decodeFromString<DataFrame>(File(measurementsPath).readText()).run {
-                    mapOf(
-                        "threadNum" to this.threadNum.map { it.toString() },
-                        "arraySize" to this.arraySize,
-                        "time" to this.time
-                    )
-                },
-                location
-            )
-        }
+    fun plotFromJSON(measurementsPath: String, location: String = "Performance-plot") {
+        buildPlot(
+            Json.decodeFromString<DataFrame>(File(measurementsPath).readText()).run {
+                mapOf(
+                    "resourcesNum" to this.resourcesNum.map { it.toString() },
+                    "arraySize" to this.arraySize,
+                    "time" to this.time
+                )
+            },
+            location
+        )
+    }
 
-        @JvmStatic
-        private fun buildPlot(dataFrame: Map<String, Any>, location: String = "Performance-plot") {
-            val p = letsPlot(dataFrame) { x = "arraySize"; color = "threadNum" } +
-                    geomPath { y = "time" } +
-                    geomPoint(size = 2.0) { y = "time" } +
-                    ylab("time, (s)") +
-                    xlab("number of elements in array") +
-                    scaleColorDiscrete(name = "number of threads", guide = guideLegend(ncol = 2)) +
-                    ggtitle("Multithreaded merge sort performance")
-            ggsave(p, "$location.png")
-        }
+    private fun buildPlot(dataFrame: Map<String, Any>, location: String = "Performance-plot") {
+        val p = letsPlot(dataFrame) { x = "arraySize"; color = sorter.resourcesKind.kind } +
+                geomPath { y = "time" } +
+                geomPoint(size = PointSize) { y = "time" } +
+                ylab("time, (s)") +
+                xlab("number of elements in array") +
+                scaleColorDiscrete(name = "number of ${sorter.resourcesKind.kind}",
+                    guide = guideLegend(ncol = ncolInGuide)) +
+                ggtitle("Multithreaded merge sort performance")
+        ggsave(p, "$location.png")
+    }
+
+    companion object {
+        const val PointSize = 2.0
+        const val ncolInGuide = 2
     }
 }
 
 @ExperimentalTime
 fun main() {
-     val bench = Benchmark()
+     val bench = Benchmark(sorter = ParallelMergeSort)
      bench.plot()
      bench.saveMeasurementsAsJSON()
 }
