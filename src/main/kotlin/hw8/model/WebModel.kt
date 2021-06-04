@@ -45,14 +45,21 @@ import java.lang.IllegalArgumentException
 @Serializable
 data class ActivePlayers(val players: List<PlayerInfo>)
 
+@Serializable
+data class ClientConfig(val host: String, val port: Int, val baseRoute: String, val getPlayersRoute: String)
+
 @KtorExperimentalAPI
-open class WebGame : BasicGame() {
+open class WebGame(configName: String = "client_config.json") : BasicGame() {
     private val client = HttpClient {
         install(WebSockets)
         install(JsonFeature) {
            serializer = KotlinxSerializer()
         }
     }
+
+    private val config = Json.decodeFromString<ClientConfig>(
+        this::class.java.getResource(configName).readText()
+    )
 
     open val activePlayers = mutableListOf<PlayerInfo>()
     override val players: MutableList<Player> = mutableListOf()
@@ -63,7 +70,6 @@ open class WebGame : BasicGame() {
     var onFail: (String) -> Unit = {}
     var onStart: (PlayerInfo) -> Unit = {}
     var onInviteFail: (String) -> Unit = {}
-    var onDisconnected: () -> Unit = {}
     private var waitingForReply = false
     private var username = ""
     private val thisPlayer: PlayerInfo by lazy { PlayerInfo(username) }
@@ -73,7 +79,7 @@ open class WebGame : BasicGame() {
     protected open val incomingInvites = mutableListOf<Invite>()
     open val inComingInvites: List<Invite>
         get() = incomingInvites
-    protected var outgoingInvite: Invite? = null
+    private var outgoingInvite: Invite? = null
     open val outGoingInvite: Invite?
         get() = outgoingInvite
     private var currentGameId: Int? = null
@@ -106,8 +112,8 @@ open class WebGame : BasicGame() {
         return "Only characters and digits allowed!"
     }
 
-    suspend fun getActivePlayers(): List<PlayerInfo> {
-        val queryString = "http://localhost:8080/game/connect"
+    private suspend fun getActivePlayers(): List<PlayerInfo> {
+        val queryString = "http://${config.host}:${config.port}${config.getPlayersRoute}"
         val response: HttpResponse = client.get(queryString)
         return Json.decodeFromString(ActivePlayers.serializer(), response.readText()).players
     }
@@ -116,14 +122,11 @@ open class WebGame : BasicGame() {
         require(username != "") { "Username must be set before starting WebGame!" }
         activePlayers.clear()
         activePlayers.addAll(getActivePlayers())
-        println("Before encoding!")
-        val encoded = format.encodeToString(AddPlayer(thisPlayer))
-        println(encoded)
         client.webSocket(
             method = HttpMethod.Get,
-            host = "localhost",
-            port = 8080,
-            path = "/game/${players[0].name}",
+            host = config.host,
+            port = config.port,
+            path = "${config.baseRoute}/$username",
         ) {
             session = this
             while (true) {
@@ -172,7 +175,7 @@ open class WebGame : BasicGame() {
         clearBoard()
     }
 
-    fun handleIncoming(frameText: Frame.Text) {
+    private fun handleIncoming(frameText: Frame.Text) {
         val message = format.decodeFromString<Message>(
             frameText.readText()
         )
