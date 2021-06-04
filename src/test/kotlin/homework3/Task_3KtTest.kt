@@ -7,7 +7,6 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import java.io.File
-import java.lang.StrictMath.min
 import java.nio.file.Path
 
 
@@ -33,7 +32,7 @@ class Task_3KtTest {
         )
 
         // after updating kotlin version: capitalize() is deprecated, use replaceFirstChar, but there is no such thing
-        val actual = File("${tmpDirForGenerated}/$testDirName/${testDirName[0]}${testDirName.drop(1)}.kt")
+        val actual = File("${tmpDirForGenerated}/$testDirName/${testDirName}.kt")
             .readText()
         val expected = this.javaClass.getResource("$testDirName/$testDirName.txt").readText()
 

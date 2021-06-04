@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.gradle.api.tasks.testing.logging.*
 
 plugins {
-    kotlin("jvm") version "1.5.0"
+    kotlin("jvm") version "1.5.10"
     kotlin("plugin.serialization") version "1.4.30"
     id("io.gitlab.arturbosch.detekt") version "1.15.0"
     id("org.jetbrains.dokka") version "1.4.20"
@@ -21,7 +21,7 @@ repositories {
 dependencies {
     implementation("org.junit.jupiter:junit-jupiter:5.6.0")
     implementation("com.charleskorn.kaml:kaml:0.28.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.1.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.1")
 
     implementation("com.squareup:kotlinpoet:1.7.2")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.12.2")
