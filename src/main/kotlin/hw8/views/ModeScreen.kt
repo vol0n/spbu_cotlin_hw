@@ -30,4 +30,9 @@ class ModeScreen : View("Choose mode") {
 
         children.filterIsInstance<Button>().addClass(Styles.spacyButton)
     }
+
+    override fun onDock() {
+        primaryStage.width = Styles.winWidth.value
+        primaryStage.height = Styles.winHeight.value
+    }
 }

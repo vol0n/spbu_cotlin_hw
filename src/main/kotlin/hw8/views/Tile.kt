@@ -25,7 +25,9 @@ class Tile : StackPane() {
         children.filterIsInstance<Text>().addClass(Styles.styledText)
 
         setOnMouseClicked {
+            if (containedText.text == "") {
                 onClick()
+            }
         }
     }
 }

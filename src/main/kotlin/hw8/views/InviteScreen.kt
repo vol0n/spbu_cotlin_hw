@@ -53,11 +53,11 @@ class InviteScreen : Fragment() {
             alignment = Pos.CENTER
             spacing = Styles.spacingBetweenBtns.value
             button("Accept").action {
-                controller.handleAccept(invite)
+                controller.handleInviteResponse(invite, true)
                 close()
             }
             button("Decline").action {
-                controller.handleDecline(invite)
+                controller.handleInviteResponse(invite, false)
                 close()
             }
         }

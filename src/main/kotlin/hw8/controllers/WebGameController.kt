@@ -4,7 +4,6 @@ import com.sun.javafx.binding.BidirectionalContentBinding
 import h8.model.Turn
 import hw8.Invite
 import hw8.PlayerInfo
-import hw8.views.LoginScreen
 import tornadofx.Controller
 import hw8.model.WebGameModel
 import hw8.views.MainMenu
@@ -32,7 +31,6 @@ class WebGameController : Controller() {
     val usernameStatusProperty = SimpleStringProperty("")
     var usernameStatus: String by usernameStatusProperty
 
-    private val loginScreen: LoginScreen by inject()
     private val boardScreen: BoardScreen by inject()
     private val mainMenu: MainMenu by inject()
     private val onlineGameView: OnlineGameView by inject()
@@ -77,6 +75,14 @@ class WebGameController : Controller() {
         setupGameEvents()
         bindUIControls()
         boardScreen.resetTiles()
+    }
+
+    fun start() {
+        runAsync {
+            runBlocking {
+                game.start()
+            }
+        }.also { tasks.add(it) }
     }
 
     private fun setupGameEvents() {
@@ -152,14 +158,6 @@ class WebGameController : Controller() {
             find<InviteEditor>(mapOf(InviteEditor::who to who)).openWindow()
         }
 
-        loginScreen.whenUndocked {
-            runAsync {
-                runBlocking {
-                    game.start()
-                }
-            }.also { tasks.add(it) }
-        }
-
         mainMenu.invitesTable.onDoubleClick {
             val who = mainMenu.invitesTable.selectedItem ?: return@onDoubleClick
             find<InviteScreen>(
@@ -168,6 +166,13 @@ class WebGameController : Controller() {
         }
     }
 
-    fun handleAccept(invite: Invite) = runAsync { runBlocking { game.acceptInvite(invite) } }
-    fun handleDecline(invite: Invite) = runAsync { runBlocking { game.declineInvite(invite) } }
+    fun handleInviteResponse(invite: Invite, response: Boolean) = runAsync {
+        runBlocking {
+            if (response) {
+                game.acceptInvite(invite)
+            } else {
+                game.declineInvite(invite)
+            }
+        }
+    }
 }

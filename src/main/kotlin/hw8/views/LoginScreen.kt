@@ -59,9 +59,13 @@ class LoginScreen : View("Login") {
                 isDefaultButton = true
                 action {
                     if (controller.login(username.value)) {
+                        controller.start()
                         replaceWith<MainMenu>()
                     }
                 }
+            }
+            button("Go back to mode menu").action {
+                replaceWith<ModeScreen>()
             }
             label(controller.usernameStatusProperty) {
                 style {
@@ -70,7 +74,6 @@ class LoginScreen : View("Login") {
                     fontWeight = FontWeight.BOLD
                 }
             }
-        }
         }
     }
 
