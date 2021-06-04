@@ -249,7 +249,7 @@ open class WebGame(configName: String = "client_config.json") : BasicGame() {
         )
         waitingForReply = true
         while (waitingForReply) {
-            val otherMessage = session.incoming.poll() as? Frame.Text ?: continue
+            val otherMessage = session.incoming.tryReceive().getOrNull() as? Frame.Text ?: continue
             handleIncoming(otherMessage)
         }
     }
