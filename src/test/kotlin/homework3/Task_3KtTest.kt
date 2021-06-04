@@ -32,7 +32,9 @@ class Task_3KtTest {
             tmpDirForGenerated.toString()
         )
 
-        val actual = File("${tmpDirForGenerated}/$testDirName/${testDirName.capitalize()}.kt").readText()
+        // after updating kotlin version: capitalize() is deprecated, use replaceFirstChar, but there is no such thing
+        val actual = File("${tmpDirForGenerated}/$testDirName/${testDirName[0]}${testDirName.drop(1)}.kt")
+            .readText()
         val expected = this.javaClass.getResource("$testDirName/$testDirName.txt").readText()
 
         assertEquals(expected, actual)
