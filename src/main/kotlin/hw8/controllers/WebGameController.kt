@@ -122,6 +122,7 @@ class WebGameController : Controller() {
 
         game.onStart = {
             runLater {
+                boardScreen.resetTiles()
                 currentView.replaceWith<OnlineGameView>()
                 currentView = onlineGameView
             }

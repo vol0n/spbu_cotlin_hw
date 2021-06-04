@@ -3,6 +3,7 @@ package hw8.views
 import hw8.app.Styles
 import hw8.controllers.WebGameController
 import io.ktor.util.KtorExperimentalAPI
+import javafx.geometry.Pos
 import tornadofx.View
 import tornadofx.action
 import tornadofx.borderpane
@@ -18,9 +19,15 @@ class OnlineGameView : View() {
        bottom = vbox {
            spacing = Styles.spacingBetweenBtns.value
            button("Leave").action {
+               alignment = Pos.CENTER
                replaceWith<MainMenu>()
                controller.abort()
            }
        }
+    }
+
+    override fun onDock() {
+        super.onDock()
+        boardScreen.resetTiles()
     }
 }

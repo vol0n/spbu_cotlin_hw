@@ -5,7 +5,9 @@ import h8.model.Turn
 import hw8.AddPlayer
 import hw8.CancelInvite
 import hw8.DeletePlayer
+import hw8.Disconnected
 import hw8.Fail
+import hw8.GameOver
 import hw8.Invite
 import hw8.Message
 import hw8.Move
@@ -61,11 +63,12 @@ open class WebGame : BasicGame() {
     var onFail: (String) -> Unit = {}
     var onStart: (PlayerInfo) -> Unit = {}
     var onInviteFail: (String) -> Unit = {}
+    var onDisconnected: () -> Unit = {}
     private var waitingForReply = false
     private var username = ""
     private val thisPlayer: PlayerInfo by lazy { PlayerInfo(username) }
 
-    lateinit var session: DefaultClientWebSocketSession
+    private lateinit var session: DefaultClientWebSocketSession
 
     protected open val incomingInvites = mutableListOf<Invite>()
     open val inComingInvites: List<Invite>
@@ -74,6 +77,14 @@ open class WebGame : BasicGame() {
     open val outGoingInvite: Invite?
         get() = outgoingInvite
     private var currentGameId: Int? = null
+
+    init {
+        onEndGameImpl = { _, _ ->
+            runBlocking {
+                session.send(format.encodeToString(GameOver() as Message))
+            }
+        }
+    }
 
     suspend fun setUsername(userName: String): String? {
         if (validationRegex.matches(userName)) {
@@ -108,18 +119,16 @@ open class WebGame : BasicGame() {
         println("Before encoding!")
         val encoded = format.encodeToString(AddPlayer(thisPlayer))
         println(encoded)
-        runBlocking {
-            client.webSocket(
-                method = HttpMethod.Get,
-                host = "localhost",
-                port = 8080,
-                path = "/game/${players[0].name}",
-            ) {
-                session = this
-                while (true) {
-                    val otherMessage = incoming.receive() as? Frame.Text ?: continue
-                    handleIncoming(otherMessage)
-                }
+        client.webSocket(
+            method = HttpMethod.Get,
+            host = "localhost",
+            port = 8080,
+            path = "/game/${players[0].name}",
+        ) {
+            session = this
+            while (true) {
+                val otherMessage = incoming.receive() as? Frame.Text ?: continue
+                handleIncoming(otherMessage)
             }
         }
         client.close()
@@ -149,6 +158,9 @@ open class WebGame : BasicGame() {
     fun abortGame() {
         if (players.size > 1) {
             players.removeIf { it is WebPlayer }
+        }
+        runBlocking {
+            session.send(format.encodeToString(Disconnected() as Message))
         }
         currentGameId = null
         outgoingInvite = null
@@ -206,7 +218,7 @@ open class WebGame : BasicGame() {
             is Fail -> {
                 println("Handling fail!")
                 onFail(message.cause)
-                abortGame()
+                runBlocking { abortGame() }
             }
             is CancelInvite -> {
                 println("Handling cancel invite!")
@@ -251,9 +263,6 @@ open class WebGame : BasicGame() {
     override fun resumeWhenResponseReady(resumingPlayer: Player, turn: Turn) {
         super.resumeWhenResponseReady(resumingPlayer, turn)
         if (currentPlayer is WebPlayer) runBlocking {
-            println("Sending move to webPlayer, his name is ${currentPlayer.name}!")
-            println("Current gameID: $currentGameId")
-            println("Game id null? : ${currentGameId == null}")
             session.send(
                 format.encodeToString(Move(turn, currentGameId as Int, currentPlayer.name) as Message)
             )

@@ -3,14 +3,19 @@ package hw8.server
 import hw8.AddPlayer
 import hw8.CancelInvite
 import hw8.DeletePlayer
+import hw8.Disconnected
 import hw8.Fail
+import hw8.GameOver
 import hw8.Invite
 import hw8.Message
 import hw8.Move
 import hw8.PlayerInfo
+import hw8.RESPONSE
 import hw8.Reply
 import hw8.format
 import hw8.model.ActivePlayers
+import hw8.server.ServerState.activeGames
+import hw8.server.ServerState.connections
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
@@ -29,8 +34,20 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.collections.LinkedHashSet
+import kotlinx.serialization.Serializable
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
+
+@Serializable
+data class ActiveGame(val players: Set<String>) {
+    constructor(player1: String, player2: String) : this(setOf(player1, player2))
+    constructor(invite: Invite) : this(setOf(invite.sender.name, invite.recipient.name))
+}
+
+object ServerState {
+    val connections = Collections.synchronizedSet<Connection>(LinkedHashSet())
+    val activeGames = Collections.synchronizedSet<ActiveGame>(LinkedHashSet())
+}
 
 @Suppress("unused")
 fun Application.module() {
@@ -45,8 +62,6 @@ fun Application.module() {
     }
 
     routing {
-        val connections = Collections.synchronizedSet<Connection>(LinkedHashSet())
-
         webSocket("/game/{username}") {
             val name = call.parameters["username"] ?: return@webSocket send("Absent or malformed username!")
             val thisPlayer = PlayerInfo(name)
@@ -59,12 +74,15 @@ fun Application.module() {
 
             try {
                 for (frame in incoming) {
-                    handleIncoming(frame, connections)
+                    handleIncoming(frame, thisPlayer)
                 }
             } finally {
                 connections -= thisConnection
                 val messageToSend = format.encodeToString(DeletePlayer(thisPlayer) as Message)
                 for (connection in connections) { connection.session.send(messageToSend) }
+                val opponentName = activeGames.find { it.players.contains(thisPlayer.name) }
+                    ?.players?.find { it != thisPlayer.name }
+                notifyOnFail(opponentName, "$opponentName has left the game.", connections)
             }
         }
 
@@ -74,7 +92,7 @@ fun Application.module() {
     }
 }
 
-suspend fun handleIncoming(frame: Frame, connections: Set<Connection>) {
+suspend fun handleIncoming(frame: Frame, thisPlayer: PlayerInfo) {
     if (frame !is Frame.Text) return
     val frameText = frame.readText()
     when (val message = format.decodeFromString<Message>(frameText)) {
@@ -86,6 +104,9 @@ suspend fun handleIncoming(frame: Frame, connections: Set<Connection>) {
             }
         }
         is Reply -> {
+            if (message.response == RESPONSE.ACCEPT) {
+                activeGames.add(ActiveGame(message.invite))
+            }
             connections.find { message.invite.sender.name == it.player.name }?.session?.send(frameText)
                 ?: notifyOnFail(message.invite.recipient.name,
                     "Player ${message.invite.recipient.name} is not online.", connections)
@@ -97,10 +118,20 @@ suspend fun handleIncoming(frame: Frame, connections: Set<Connection>) {
         is CancelInvite -> {
             connections.find { message.recipient.name == it.player.name }?.session?.send(frameText)
         }
+        is GameOver -> {
+            activeGames.removeIf { it.players.contains(thisPlayer.name) }
+        }
+        is Disconnected -> {
+            activeGames.find { it.players.contains(thisPlayer.name) }?.apply {
+                notifyOnFail(this.players.find { it != thisPlayer.name },
+                "Player `${thisPlayer.name}` has left the game.", connections)
+                activeGames.remove(this)
+            }
+        }
     }
 }
 
-suspend fun notifyOnFail(name: String, cause: String, connections: Set<Connection>) {
+suspend fun notifyOnFail(name: String?, cause: String, connections: Set<Connection>) {
     connections.find { it.player.name == name }?.apply {
         session.send(
             format.encodeToString(Fail(cause) as Message)

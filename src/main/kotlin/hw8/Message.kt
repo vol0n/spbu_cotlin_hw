@@ -58,6 +58,12 @@ data class Fail(val cause: String) : Message()
 @Serializable
 data class CancelInvite(val sender: PlayerInfo, val recipient: PlayerInfo) : Message()
 
+@Serializable
+class GameOver : Message()
+
+@Serializable
+class Disconnected : Message()
+
 val module = SerializersModule {
     polymorphic(Message::class) {
         subclass(AddPlayer::class)
@@ -66,6 +72,9 @@ val module = SerializersModule {
         subclass(Reply::class)
         subclass(Move::class)
         subclass(CancelInvite::class)
+        subclass(Fail::class)
+        subclass(GameOver::class)
+        subclass(Disconnected::class)
     }
 }
 

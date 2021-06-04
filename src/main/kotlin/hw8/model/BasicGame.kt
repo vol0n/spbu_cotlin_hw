@@ -16,24 +16,10 @@ enum class Cell(val representation: String) {
 }
 
 abstract class BasicGame {
-    companion object {
-        const val boardSize = 3
-        const val numOfPlayers = 2
-        val playersLabels = listOf(Cell.X, Cell.O)
-    }
-
     protected abstract val players: List<Player>
 
     private val board: List<MutableList<Cell>> = List(boardSize) {
         MutableList(boardSize) { Cell.EMPTY }
-    }
-
-    protected fun clearBoard() {
-        for (i in 0 until boardSize) {
-            for (j in 0 until boardSize) {
-                board[i][j] = Cell.EMPTY
-            }
-        }
     }
 
     val gameBoard
@@ -53,6 +39,7 @@ abstract class BasicGame {
     var winningCombo: Combo? = null
     var onEndGame: (Player?, Combo?) -> Unit = { _, _ -> }
     var onTurn: (Player, Turn, String) -> Unit = { _, _, _ -> }
+    protected var onEndGameImpl: (Player?, Combo?) -> Unit = { _, _ -> }
 
     private val combos = mutableListOf<Combo>()
     fun getCombos() = combos as List<Combo>
@@ -112,7 +99,7 @@ abstract class BasicGame {
     }
 
     // check if somebody won or it is draw, if yes calls onEndGame
-    private fun checkState() {
+    protected fun checkState() {
         if (!isPlayable) {
             return
         }
@@ -129,10 +116,11 @@ abstract class BasicGame {
         }
         if (!isPlayable) {
             onEndGame(winner, winningCombo)
+            onEndGameImpl(winner, winningCombo)
         }
     }
 
-    private fun makeTurn(turn: Turn) {
+    protected fun makeTurn(turn: Turn) {
         require(board[turn.rowPos][turn.colPos] == Cell.EMPTY) { "This cell is already used!" }
         board[turn.rowPos][turn.colPos] = playersLabels[turnNumber % numOfPlayers]
         onTurn(currentPlayer, turn, playersLabels[turnNumber % numOfPlayers].representation)
@@ -144,6 +132,20 @@ abstract class BasicGame {
         if (!isGameGoing || currentPlayer != resumingPlayer) return
         makeTurn(turn)
         play()
+    }
+
+    protected fun clearBoard() {
+        for (i in 0 until boardSize) {
+            for (j in 0 until boardSize) {
+                board[i][j] = Cell.EMPTY
+            }
+        }
+    }
+
+    companion object {
+        const val boardSize = 3
+        const val numOfPlayers = 2
+        val playersLabels = listOf(Cell.X, Cell.O)
     }
 }
 

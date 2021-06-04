@@ -15,7 +15,7 @@ class FailScreen : Fragment("") {
         label(cause)
         button("Ok") {
             action {
-                replaceWith<MainMenu>()
+                close()
             }
         }
     }

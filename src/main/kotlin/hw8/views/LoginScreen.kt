@@ -54,9 +54,13 @@ class LoginScreen : View("Login") {
         }
         hbox {
             spacing = Styles.spacingBetweenBtns.value
-            button("Ok").action {
-                if (controller.login(username.value)) {
-                    replaceWith<MainMenu>()
+
+            button("Ok") {
+                isDefaultButton = true
+                action {
+                    if (controller.login(username.value)) {
+                        replaceWith<MainMenu>()
+                    }
                 }
             }
             label(controller.usernameStatusProperty) {
@@ -67,12 +71,13 @@ class LoginScreen : View("Login") {
                 }
             }
         }
+        }
     }
 
     override fun onDock() {
         primaryStage.width = Styles.loginScreenWidth
         primaryStage.height = Styles.loginScreenHeight
-        primaryStage.centerOnScreen()
+        // primaryStage.centerOnScreen()
     }
 
     companion object {

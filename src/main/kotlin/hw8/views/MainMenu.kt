@@ -34,6 +34,6 @@ class MainMenu : View("Players online: ") {
     override fun onDock() {
         primaryStage.width = Styles.winWidth.value
         primaryStage.height = Styles.winHeight.value
-        primaryStage.centerOnScreen()
+        // primaryStage.centerOnScreen()
     }
 }
