@@ -23,7 +23,6 @@ class BoardScreen : View() {
 
     fun resetTiles() {
         tiles.map { row -> row.map {
-            //it.wasClicked = false
             it.containedText.text = ""
         } }
     }

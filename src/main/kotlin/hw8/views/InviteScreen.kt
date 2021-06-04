@@ -4,7 +4,7 @@ import hw8.Invite
 import hw8.app.Styles
 import hw8.app.Styles.Companion.inviteScreen
 import hw8.controllers.WebGameController
-import io.ktor.util.*
+import io.ktor.util.KtorExperimentalAPI
 import javafx.geometry.Pos
 import javafx.scene.paint.Color
 import javafx.scene.text.FontWeight
@@ -15,14 +15,13 @@ import tornadofx.borderpane
 import tornadofx.button
 import tornadofx.hbox
 import tornadofx.label
-import tornadofx.px
 import tornadofx.style
 import tornadofx.text
 import tornadofx.textflow
 import tornadofx.vbox
 
 @KtorExperimentalAPI
-class InviteScreen: Fragment() {
+class InviteScreen : Fragment() {
     val invite: Invite by param()
     val controller: WebGameController by inject()
     override val root = borderpane {

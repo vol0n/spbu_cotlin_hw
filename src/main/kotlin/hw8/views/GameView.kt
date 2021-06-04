@@ -3,7 +3,7 @@ package hw8.views
 import javafx.scene.control.Button
 import hw8.app.Styles
 import hw8.controllers.GameController
-import io.ktor.util.*
+import io.ktor.util.KtorExperimentalAPI
 import javafx.geometry.Pos
 import tornadofx.View
 import tornadofx.borderpane

@@ -14,31 +14,31 @@ import hw8.RESPONSE
 import hw8.Reply
 import hw8.SIDE
 import hw8.format
-import io.ktor.client.*
-import io.ktor.client.features.json.*
-import io.ktor.client.features.json.serializer.*
-import io.ktor.client.features.websocket.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import io.ktor.http.cio.websocket.*
-import io.ktor.util.*
-import javafx.beans.property.SimpleBooleanProperty
+import io.ktor.client.HttpClient
+import io.ktor.client.features.json.JsonFeature
+import io.ktor.client.features.json.serializer.KotlinxSerializer
+import io.ktor.client.features.websocket.DefaultClientWebSocketSession
+import io.ktor.client.features.websocket.WebSockets
+import io.ktor.client.features.websocket.webSocket
+import io.ktor.client.request.get
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.readText
+import io.ktor.http.HttpMethod
+import io.ktor.http.cio.websocket.Frame
+import io.ktor.http.cio.websocket.readText
+import io.ktor.http.cio.websocket.send
+import io.ktor.util.KtorExperimentalAPI
 import javafx.beans.property.SimpleListProperty
-import javafx.beans.property.SimpleStringProperty
 import javafx.collections.ObservableList
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import tornadofx.ItemViewModel
 import tornadofx.swap
 import tornadofx.toObservable
-import tornadofx.*
+import tornadofx.getValue
 import java.lang.IllegalArgumentException
-import javax.print.attribute.standard.JobOriginatingUserName
-
 
 @Serializable
 data class ActivePlayers(val players: List<PlayerInfo>)
@@ -182,7 +182,6 @@ open class WebGame : BasicGame() {
                 println("Handling reply!")
                 if (message.response == RESPONSE.ACCEPT) {
                     onAccept()
-                    //if (message.invite == outgoingInvite) { "Unknown reply" }
                     currentGameId = outgoingInvite?.id
                     players.add(WebPlayer(this::resumeWhenResponseReady, message.invite.recipient))
                     if (message.invite.side == SIDE.SenderIsO) players.swap(0, 1)
@@ -220,7 +219,7 @@ open class WebGame : BasicGame() {
     private inner class WebPlayer(
         callbackWhenReady: (Player, Turn) -> Unit,
         playerInfo: PlayerInfo
-    ): LongResponsePlayer(callbackWhenReady, playerInfo.name)
+    ) : LongResponsePlayer(callbackWhenReady, playerInfo.name)
 
     suspend fun askToPlay(whom: PlayerInfo, sideStr: String, message: String? = null) {
         println("Asking to play!")
@@ -269,7 +268,7 @@ open class WebGame : BasicGame() {
 
     companion object {
         val validationRegex = "[a-zA-z]+[a-zA-Z1-9]*".toRegex()
-        val minNameLength = 3
+        const val minNameLength = 3
     }
 }
 

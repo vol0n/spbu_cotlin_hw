@@ -9,7 +9,7 @@ import tornadofx.readonlyColumn
 import tornadofx.tableview
 import tornadofx.toObservable
 
-class MainMenu: View("Players online: ") {
+class MainMenu : View("Players online: ") {
     val activePlayers = mutableListOf<PlayerInfo>().toObservable()
     val playersTable = tableview(activePlayers) {
         readonlyColumn("Name", PlayerInfo::name)

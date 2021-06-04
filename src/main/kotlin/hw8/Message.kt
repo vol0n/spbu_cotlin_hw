@@ -11,22 +11,17 @@ import kotlinx.serialization.modules.subclass
 data class PlayerInfo(val name: String)
 
 @Serializable
-enum class MessageType {
-    ADD_PLAYER, MAKE_TURN, DELETE_PLAYER, ASK_TO_PLAY, RESPONSE, INVITE, REPLY
-}
-
-@Serializable
 abstract class Message
 
 @Serializable
-data class AddPlayer(val player: PlayerInfo): Message() {
+data class AddPlayer(val player: PlayerInfo) : Message() {
     fun perform(target: MutableList<PlayerInfo>) {
         target.add(player)
     }
 }
 
 @Serializable
-data class DeletePlayer(val player: PlayerInfo): Message() {
+data class DeletePlayer(val player: PlayerInfo) : Message() {
     fun perform(target: MutableList<PlayerInfo>) {
         target.remove(player)
     }
@@ -44,7 +39,7 @@ data class Invite(
     val side: SIDE,
     val id: Int,
     val message: String? = null,
-): Message()
+) : Message()
 
 @Serializable
 enum class RESPONSE {
@@ -52,16 +47,16 @@ enum class RESPONSE {
 }
 
 @Serializable
-data class Reply(val invite: Invite, val response: RESPONSE): Message()
+data class Reply(val invite: Invite, val response: RESPONSE) : Message()
 
 @Serializable
-data class Move(val turn: Turn, val gameID: Int, val recipientName: String): Message()
+data class Move(val turn: Turn, val gameID: Int, val recipientName: String) : Message()
 
 @Serializable
-data class Fail(val cause: String): Message()
+data class Fail(val cause: String) : Message()
 
 @Serializable
-data class CancelInvite(val sender: PlayerInfo, val recipient: PlayerInfo): Message()
+data class CancelInvite(val sender: PlayerInfo, val recipient: PlayerInfo) : Message()
 
 val module = SerializersModule {
     polymorphic(Message::class) {

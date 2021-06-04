@@ -172,4 +172,3 @@ class RandomGame(uIPlayerLabel: String = "X") : LocalGame(uIPlayerLabel) {
 class AIGame(uIPlayerLabel: String = "X") : LocalGame(uIPlayerLabel) {
     override val players = mutableListOf(LongResponsePlayer(this::resumeWhenResponseReady), ComputerAI(this))
 }
-

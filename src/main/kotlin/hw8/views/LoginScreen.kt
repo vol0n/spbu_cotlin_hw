@@ -2,15 +2,11 @@ package hw8.views
 
 import hw8.app.Styles
 import hw8.controllers.WebGameController
-import io.ktor.util.*
+import io.ktor.util.KtorExperimentalAPI
 import javafx.beans.property.SimpleStringProperty
 import javafx.scene.Parent
 import javafx.scene.paint.Color
 import javafx.scene.text.FontWeight
-import tornadofx.ItemViewModel
-import tornadofx.ValidationContext
-import tornadofx.ValidationMessage
-import tornadofx.ValidationSeverity
 import tornadofx.View
 import tornadofx.ViewModel
 import tornadofx.action
@@ -21,13 +17,12 @@ import tornadofx.form
 import tornadofx.hbox
 import tornadofx.label
 import tornadofx.paddingTop
-import tornadofx.required
 import tornadofx.style
 import tornadofx.textfield
 import tornadofx.validator
 
 @KtorExperimentalAPI
-class LoginScreen: View("Login") {
+class LoginScreen : View("Login") {
     val controller: WebGameController by inject()
     val validationRegex = "[a-zA-z]+[a-zA-Z1-9]*".toRegex()
     private val model = ViewModel()
@@ -46,12 +41,12 @@ class LoginScreen: View("Login") {
                     validator {
                         println(validationRegex.toString())
                         val str = it ?: ""
-                        if (str.length < 3) {
-                            ValidationMessage("Too few characters", severity = ValidationSeverity.Error)
+                        if (str.length < minInputLength) {
+                            error("Too few characters")
                         } else if (!validationRegex.matches(str)) {
-                            ValidationMessage("Incorrect username: only symbols and digits are allowed!", ValidationSeverity.Error)
+                            error("Incorrect username: only symbols and digits are allowed!")
                         } else {
-                            ValidationMessage("Correct username!", ValidationSeverity.Success)
+                            success("Correct username!")
                         }
                     }
                 }
@@ -78,5 +73,9 @@ class LoginScreen: View("Login") {
         primaryStage.width = Styles.loginScreenWidth
         primaryStage.height = Styles.loginScreenHeight
         primaryStage.centerOnScreen()
+    }
+
+    companion object {
+        const val minInputLength = 3
     }
 }

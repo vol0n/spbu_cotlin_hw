@@ -8,7 +8,7 @@ import h8.model.Turn
 import hw8.views.BoardScreen
 import hw8.views.EndGame
 import hw8.views.MenuScreen
-import io.ktor.util.*
+import io.ktor.util.KtorExperimentalAPI
 import tornadofx.Controller
 
 data class GameMode(
@@ -67,5 +67,4 @@ class GameController : Controller() {
 
         localGame.play()
     }
-
 }

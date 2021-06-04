@@ -3,7 +3,7 @@ package hw8.views
 import hw8.app.Styles
 import hw8.controllers.GameController
 import hw8.controllers.WebGameController
-import io.ktor.util.*
+import io.ktor.util.KtorExperimentalAPI
 import javafx.geometry.Pos
 import javafx.scene.control.Button
 import tornadofx.View
@@ -13,7 +13,7 @@ import tornadofx.button
 import tornadofx.vbox
 
 @KtorExperimentalAPI
-class ModeScreen: View("Choose mode") {
+class ModeScreen : View("Choose mode") {
     val gameController: GameController by inject()
     val webGameController: WebGameController by inject()
     override val root = vbox {
@@ -23,7 +23,7 @@ class ModeScreen: View("Choose mode") {
             gameController.init()
             replaceWith<MenuScreen>()
         }
-        button ("Online mode").action {
+        button("Online mode").action {
             webGameController.init()
             replaceWith<LoginScreen>()
         }

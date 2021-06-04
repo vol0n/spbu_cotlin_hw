@@ -29,8 +29,8 @@ class Styles : Stylesheet() {
        val toggleBtnsFontSz = 20.px
        val spacingBetweenToggleBtns = 40.px
 
-       val loginScreenWidth = 300.0
-       val loginScreenHeight = 125.0
+       const val loginScreenWidth = 300.0
+       const val loginScreenHeight = 125.0
    }
 
     init {

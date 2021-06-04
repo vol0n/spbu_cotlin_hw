@@ -7,7 +7,7 @@ import javafx.geometry.Pos
 import javafx.scene.control.Button
 import hw8.app.Styles
 import hw8.controllers.GameMode
-import io.ktor.util.*
+import io.ktor.util.KtorExperimentalAPI
 import tornadofx.View
 import tornadofx.action
 import tornadofx.addClass

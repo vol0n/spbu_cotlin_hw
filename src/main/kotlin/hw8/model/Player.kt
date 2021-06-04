@@ -43,7 +43,10 @@ class ComputerAI(private val game: BasicGame) : Player {
     override val name = "Computer with simple AI"
 }
 
-open class LongResponsePlayer(private val callBackWhenReady: (Player, Turn) -> Unit, override var name: String = "you") : Player {
+open class LongResponsePlayer(
+    private val callBackWhenReady: (Player, Turn) -> Unit,
+    override var name: String = "you"
+) : Player {
     private var turn: Turn? = null
     open fun makeTurn(turnFromOutSource: Turn) {
             turn = turnFromOutSource

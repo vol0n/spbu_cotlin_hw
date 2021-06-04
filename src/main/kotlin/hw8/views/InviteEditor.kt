@@ -1,33 +1,26 @@
 package hw8.views
 
-import hw8.Invite
 import hw8.PlayerInfo
 import hw8.app.Styles
 import hw8.controllers.WebGameController
-import io.ktor.util.*
+import io.ktor.util.KtorExperimentalAPI
 import javafx.beans.property.SimpleStringProperty
 import tornadofx.Fragment
-import tornadofx.View
 import tornadofx.action
 import tornadofx.button
 import tornadofx.field
 import tornadofx.fieldset
 import tornadofx.form
 import tornadofx.hbox
-import tornadofx.label
-import tornadofx.launch
-import tornadofx.px
 import tornadofx.runAsyncWithProgress
-import tornadofx.runLater
 import tornadofx.stackpane
 import tornadofx.stringBinding
 import tornadofx.textfield
 import tornadofx.togglebutton
 import tornadofx.togglegroup
-import tornadofx.vbox
 
 @KtorExperimentalAPI
-class InviteEditor: Fragment("Invite params") {
+class InviteEditor : Fragment("Invite params") {
     val message = SimpleStringProperty("")
     val side = SimpleStringProperty("")
     val who: PlayerInfo by param()

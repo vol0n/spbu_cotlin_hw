@@ -8,7 +8,7 @@ import tornadofx.button
 import tornadofx.label
 import tornadofx.vbox
 
-class FailScreen: Fragment("") {
+class FailScreen : Fragment("") {
     val cause: String by param()
     override val root = vbox {
         addClass(Styles.vbox)
