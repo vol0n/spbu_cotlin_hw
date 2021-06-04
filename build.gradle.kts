@@ -21,7 +21,9 @@ repositories {
 dependencies {
     implementation("org.junit.jupiter:junit-jupiter:5.6.0")
     implementation("com.charleskorn.kaml:kaml:0.28.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.1")
+
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.1.0")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.5.0")
 
     implementation("com.squareup:kotlinpoet:1.7.2")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.12.2")
@@ -31,6 +33,12 @@ dependencies {
     implementation("org.openjfx:javafx-base:11.0.2")
     implementation("org.openjfx:javafx:11.0.2")
     implementation("org.openjfx:javafx-controls:11.0.2")
+
+    // for plotting with lets-plot
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation( "org.jetbrains.lets-plot:lets-plot-jfx:2.0.1")
+    api( "org.jetbrains.lets-plot:lets-plot-kotlin-api:2.0.1")
+    implementation("org.jetbrains.lets-plot:lets-plot-image-export:2.0.1")
 
     testImplementation(platform("org.junit:junit-bom:5.7.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
